@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="Convert metric length to minimum imperial spacers">
+    <link rel="manifest" href="manifest.json">
+    <title>Spacer Calculator</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #f3f4f6;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-neutral-900 rounded-xl border border-neutral-800 p-6 shadow-2xl">
+
+        <div class="mb-6 text-center">
+            <h1 class="text-xl font-bold tracking-tight text-white mb-1">Spacer Calculator</h1>
+            <p class="text-xs text-neutral-400">Convert metric length to minimum imperial spacers</p>
+        </div>
+
+        <div class="mb-6">
+            <label for="targetInput" class="block text-xs font-medium text-neutral-300 mb-2">
+                Target Dimension (mm)
+            </label>
+            <div class="relative flex items-center">
+                <input type="number" id="targetInput" step="0.001" placeholder="0.00"
+                    class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#7e0c2b] transition"
+                    oninput="calculateSpacers()">
+                <span class="absolute right-4 text-xs font-semibold text-neutral-500">mm</span>
+            </div>
+        </div>
+
+        <div id="resultsContainer" class="hidden space-y-4">
+            <div class="border-t border-neutral-800 pt-4">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-3">
+                    Required Spacers
+                </h2>
+                <div id="spacersList" class="space-y-2"></div>
+            </div>
+
+            <div class="bg-black rounded-lg p-3 border border-neutral-800 grid grid-cols-2 gap-3 text-center">
+                <div>
+                    <span class="block text-[10px] text-neutral-500 uppercase tracking-wider">Achieved</span>
+                    <span id="totalAchieved" class="text-sm font-bold text-white font-mono">0.000 mm</span>
+                </div>
+                <div>
+                    <span class="block text-[10px] text-neutral-500 uppercase tracking-wider">Remainder</span>
+                    <span id="remainder" class="text-sm font-bold text-neutral-400 font-mono">0.000 mm</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="emptyState" class="text-center py-6 text-xs text-neutral-600 border-t border-neutral-800">
+            Enter a value above to calculate.
+        </div>
+    </div>
+
+    <script>
+        const spacerSizes = [
+            { name: '2"', mm: 50.8 },
+            { name: '1"', mm: 25.4 },
+            { name: '1/2"', mm: 12.7 },
+            { name: '1/4"', mm: 6.35 },
+            { name: '1/8"', mm: 3.175 },
+            { name: '1/16"', mm: 1.5875 },
+            { name: '1/32"', mm: 0.79375 }
+        ];
+
+        function calculateSpacers() {
+            const inputVal = document.getElementById('targetInput').value;
+            const targetMm = parseFloat(inputVal);
+
+            const resultsContainer = document.getElementById('resultsContainer');
+            const emptyState = document.getElementById('emptyState');
+            const spacersList = document.getElementById('spacersList');
+            const totalAchievedEl = document.getElementById('totalAchieved');
+            const remainderEl = document.getElementById('remainder');
+
+            if (isNaN(targetMm) || targetMm <= 0) {
+                resultsContainer.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            let remaining = targetMm;
+            let totalAchieved = 0;
+            let htmlContent = '';
+
+            spacerSizes.forEach(spacer => {
+                const count = Math.floor(remaining / spacer.mm);
+                if (count > 0) {
+                    const subTotal = count * spacer.mm;
+                    totalAchieved += subTotal;
+                    remaining -= subTotal;
+
+                    htmlContent += `
+                        <div class="flex items-center justify-between bg-black px-3 py-2.5 rounded-lg border border-neutral-800 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#7e0c2b] inline-block"></span>
+                                <span class="font-medium text-white">${count}x <span class="text-neutral-300">${spacer.name}</span></span>
+                            </div>
+                            <span class="text-neutral-500 font-mono">${subTotal.toFixed(3)} mm</span>
+                        </div>
+                    `;
+                }
+            });
+
+            spacersList.innerHTML = htmlContent;
+            totalAchievedEl.innerText = totalAchieved.toFixed(3) + ' mm';
+            remainderEl.innerText = remaining.toFixed(3) + ' mm';
+
+            emptyState.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+        }
+
+        // Register the service worker that makes the app installable/offline-capable.
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .catch(error => console.error('Service worker registration failed:', error));
+            });
+        }
+    </script>
+</body>
+</html>
