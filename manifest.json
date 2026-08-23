@@ -1,7 +1,7 @@
 {
-  "name": "Spacer Calculator",
-  "short_name": "Spacer Calc",
-  "description": "Convert metric length to minimum imperial spacers",
+  "name": "MisCalc",
+  "short_name": "MisCalc",
+  "description": "Spacer and Timing Belt Calculator",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

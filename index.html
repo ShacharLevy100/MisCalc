@@ -4,18 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#000000">
-    <meta name="description" content="Convert metric length to minimum imperial spacers">
-    <link rel="manifest" href="manifest.json">
-    <title>Spacer Calculator</title>
+    <meta name="description" content="Spacer and Timing Belt Calculator">
+    <title>FRC Mechanical Calculator</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #000000;
             color: #f3f4f6;
+        }
+        .mono-num {
+            font-family: 'JetBrains Mono', monospace;
         }
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button {
@@ -25,56 +27,182 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 4px;
+        }
+        .tab-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
 
-    <div class="w-full max-w-md bg-neutral-900 rounded-xl border border-neutral-800 p-6 shadow-2xl">
+    <div class="w-full max-w-md bg-neutral-900 rounded-xl border border-neutral-800 p-6 shadow-2xl space-y-6">
 
-        <div class="mb-6 text-center">
-            <h1 class="text-xl font-bold tracking-tight text-white mb-1">Spacer Calculator</h1>
-            <p class="text-xs text-neutral-400">Convert metric length to minimum imperial spacers</p>
-        </div>
-
-        <div class="mb-6">
-            <label for="targetInput" class="block text-xs font-medium text-neutral-300 mb-2">
-                Target Dimension (mm)
-            </label>
-            <div class="relative flex items-center">
-                <input type="number" id="targetInput" step="0.001" placeholder="0.00"
-                    class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#7e0c2b] transition"
-                    oninput="calculateSpacers()">
-                <span class="absolute right-4 text-xs font-semibold text-neutral-500">mm</span>
+        <!-- Top Header & Tabs -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-neutral-800 pb-4 gap-4">
+            <div>
+                <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-[#7e0c2b] shadow-lg shadow-[#7e0c2b]/50"></span>
+                    MisCalc
+                </h1>
+            </div>
+            
+            <div class="flex bg-black p-1 rounded-lg border border-neutral-800 w-full sm:w-auto">
+                <button onclick="switchTab('spacers')" id="tabSpacers" class="tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md bg-[#7e0c2b] text-white shadow-md">Spacers</button>
+                <button onclick="switchTab('belts')" id="tabBelts" class="tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md text-neutral-400 hover:text-white">Timing Belts</button>
             </div>
         </div>
 
-        <div id="resultsContainer" class="hidden space-y-4">
-            <div class="border-t border-neutral-800 pt-4">
-                <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-3">
-                    Required Spacers
-                </h2>
-                <div id="spacersList" class="space-y-2"></div>
-            </div>
-
-            <div class="bg-black rounded-lg p-3 border border-neutral-800 grid grid-cols-2 gap-3 text-center">
-                <div>
-                    <span class="block text-[10px] text-neutral-500 uppercase tracking-wider">Achieved</span>
-                    <span id="totalAchieved" class="text-sm font-bold text-white font-mono">0.000 mm</span>
+        <!-- ================= SPACERS TAB (Default) ================= -->
+        <div id="sectionSpacers" class="space-y-4">
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <label for="targetSpacerInput" class="text-xs font-medium text-neutral-300">
+                        Target Dimension
+                    </label>
+                    <select id="spacerUnitSelect" onchange="calculateSpacers()" class="bg-black border border-neutral-800 text-xs text-[#7e0c2b] rounded-md px-2.5 py-1 font-semibold focus:outline-none focus:border-[#7e0c2b] transition">
+                        <option value="mm">Metric (mm)</option>
+                        <option value="in">Imperial (in)</option>
+                    </select>
                 </div>
-                <div>
-                    <span class="block text-[10px] text-neutral-500 uppercase tracking-wider">Remainder</span>
-                    <span id="remainder" class="text-sm font-bold text-neutral-400 font-mono">0.000 mm</span>
+
+                <div class="relative">
+                    <input type="number" id="targetSpacerInput" step="0.001" placeholder="Enter target value..." oninput="calculateSpacers()"
+                        class="w-full bg-black border border-neutral-800 rounded-lg px-4 py-3 text-sm text-white font-medium mono-num focus:outline-none focus:border-[#7e0c2b] transition">
                 </div>
             </div>
+
+            <div id="spacersResultsContainer" class="hidden space-y-3 pt-2">
+                <div class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Required Stack</div>
+                <div id="spacersList" class="space-y-2 text-xs"></div>
+
+                <div class="bg-black rounded-lg p-3 border border-neutral-800 grid grid-cols-2 gap-3 text-center">
+                    <div>
+                        <span class="block text-[10px] text-neutral-500 uppercase tracking-wider">Achieved</span>
+                        <span id="totalAchieved" class="text-sm font-bold text-white mono-num">0.00</span>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] text-neutral-500 uppercase tracking-wider">Remainder</span>
+                        <span id="remainder" class="text-sm font-bold text-[#7e0c2b] mono-num">0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="spacersEmptyState" class="text-center py-8 text-xs text-neutral-500 border-t border-neutral-800">
+                Enter a target measurement above to compute the optimal spacer stack.
+            </div>
         </div>
 
-        <div id="emptyState" class="text-center py-6 text-xs text-neutral-600 border-t border-neutral-800">
-            Enter a value above to calculate.
+        <!-- ================= TIMING BELTS TAB ================= -->
+        <div id="sectionBelts" class="space-y-4 hidden">
+
+            <!-- Pitch & Unit Selectors -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="bg-black border border-neutral-800 rounded-lg p-3 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-medium text-neutral-300">Belt Pitch</label>
+                        <span id="pitchBadge" class="text-[11px] text-[#7e0c2b] font-bold mono-num">HTD 5mm</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1 bg-neutral-900 p-1 rounded-md border border-neutral-800 text-[10px]">
+                        <button type="button" onclick="setPitch('HTD5')" id="pitchHTD5" class="py-1.5 rounded text-white bg-[#7e0c2b] font-bold transition">5mm</button>
+                        <button type="button" onclick="setPitch('GT2_3')" id="pitchGT2_3" class="py-1.5 rounded text-neutral-400 font-medium transition">3mm</button>
+                        <button type="button" onclick="setPitch('GT2_2')" id="pitchGT2_2" class="py-1.5 rounded text-neutral-400 font-medium transition">2mm</button>
+                        <button type="button" onclick="setPitch('RT25')" id="pitchRT25" class="py-1.5 rounded text-neutral-400 font-medium transition">0.25"</button>
+                    </div>
+                </div>
+
+                <div class="bg-black border border-neutral-800 rounded-lg p-3 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-medium text-neutral-300">Units</label>
+                        <span class="text-[11px] text-neutral-500">in / mm</span>
+                    </div>
+                    <div class="flex bg-neutral-900 p-1 rounded-md border border-neutral-800 text-xs gap-1">
+                        <button type="button" onclick="setUnit('in')" id="unitIn" class="flex-1 py-1.5 rounded font-medium transition text-neutral-400">Imperial</button>
+                        <button type="button" onclick="setUnit('mm')" id="unitMm" class="flex-1 py-1.5 rounded font-bold transition bg-[#7e0c2b] text-white">Metric</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parameters Card -->
+            <div class="space-y-3 pt-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="block text-xs text-neutral-300 font-medium">
+                            Target C2C (<span class="unitLabel">mm</span>)
+                        </label>
+                        <input type="number" id="inputTargetCenter" step="0.001" value="125.000" oninput="recalculate()"
+                            class="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-white font-medium mono-num focus:outline-none focus:border-[#7e0c2b] transition">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs text-neutral-300 font-medium">Extra Tension</label>
+                        <input type="number" id="inputExtraCenter" step="0.001" value="0.000" oninput="recalculate()"
+                            class="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-white font-medium mono-num focus:outline-none focus:border-[#7e0c2b] transition">
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-xs text-neutral-300 font-medium">Pulley 1 (Teeth)</label>
+                            <span id="pd1Display" class="text-[10px] text-[#7e0c2b] font-bold mono-num">PD: 38.2 mm</span>
+                        </div>
+                        <input type="number" id="inputP1" step="1" value="24" oninput="recalculate()"
+                            class="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-white font-medium mono-num focus:outline-none focus:border-[#7e0c2b] transition">
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-xs text-neutral-300 font-medium">Pulley 2 (Teeth)</label>
+                            <span id="pd2Display" class="text-[10px] text-[#7e0c2b] font-bold mono-num">PD: 38.2 mm</span>
+                        </div>
+                        <input type="number" id="inputP2" step="1" value="24" oninput="recalculate()"
+                            class="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-white font-medium mono-num focus:outline-none focus:border-[#7e0c2b] transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SVG Diagram -->
+            <div class="bg-black border border-neutral-800 rounded-lg p-3 flex flex-col items-center space-y-2">
+                <div class="w-full flex justify-between items-center text-xs text-neutral-400 font-medium px-1">
+                    <span>Layout Preview</span>
+                    <span id="diagramInfo" class="text-[#7e0c2b] font-bold mono-num text-[11px]">24T - 24T @ 125.00 mm</span>
+                </div>
+                <div class="w-full h-32 bg-neutral-950 border border-neutral-900 rounded-md flex items-center justify-center relative overflow-hidden">
+                    <svg id="beltSvg" class="w-full h-full" viewBox="0 0 500 140" preserveAspectRatio="xMidYMid meet"></svg>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="space-y-2 pt-1">
+                <div class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Recommended Belts</div>
+                <div id="selectedBeltCard" class="bg-black border-2 border-[#7e0c2b] rounded-lg p-3.5 space-y-2.5"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div id="smallerBeltCard" class="bg-black border border-neutral-800 rounded-lg p-3 space-y-1"></div>
+                    <div id="largerBeltCard" class="bg-black border border-neutral-800 rounded-lg p-3 space-y-1"></div>
+                </div>
+            </div>
+
         </div>
+
     </div>
 
     <script>
-        const spacerSizes = [
+        let currentUnit = 'mm';
+        let currentPitchMm = 5.0;
+        let pitchPresetKey = 'HTD5';
+
+        const PITCH_PRESETS = {
+            'HTD5': { name: 'HTD 5mm', pitchMm: 5.0 },
+            'GT2_3': { name: 'GT2 3mm', pitchMm: 3.0 },
+            'GT2_2': { name: 'GT2 2mm', pitchMm: 2.0 },
+            'RT25': { name: 'RT25 (0.25")', pitchMm: 6.35 }
+        };
+
+        const SPACER_SIZES = [
             { name: '2"', mm: 50.8 },
             { name: '1"', mm: 25.4 },
             { name: '1/2"', mm: 12.7 },
@@ -84,60 +212,315 @@
             { name: '1/32"', mm: 0.79375 }
         ];
 
+        function switchTab(tab) {
+            const isSpacers = tab === 'spacers';
+            document.getElementById('sectionSpacers').classList.toggle('hidden', !isSpacers);
+            document.getElementById('sectionBelts').classList.toggle('hidden', isSpacers);
+            
+            document.getElementById('tabSpacers').className = `tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition ${isSpacers ? 'bg-[#7e0c2b] text-white shadow-md' : 'text-neutral-400 hover:text-white'}`;
+            document.getElementById('tabBelts').className = `tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition ${!isSpacers ? 'bg-[#7e0c2b] text-white shadow-md' : 'text-neutral-400 hover:text-white'}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const unitIn = document.getElementById('unitIn');
+            const unitMm = document.getElementById('unitMm');
+            if (unitIn && unitMm) {
+                unitIn.className = 'flex-1 py-1.5 rounded font-medium transition text-neutral-400';
+                unitMm.className = 'flex-1 py-1.5 rounded font-bold transition bg-[#7e0c2b] text-white';
+            }
+            document.querySelectorAll('.unitLabel').forEach(el => el.innerText = 'mm');
+            
+            const spacerUnitSelect = document.getElementById('spacerUnitSelect');
+            if (spacerUnitSelect) spacerUnitSelect.value = 'mm';
+
+            const targetCenterInput = document.getElementById('inputTargetCenter');
+            if (targetCenterInput) targetCenterInput.value = "125.000";
+
+            recalculate();
+        });
+
+        function setPitch(key) {
+            pitchPresetKey = key;
+            const preset = PITCH_PRESETS[key];
+            currentPitchMm = preset.pitchMm;
+
+            ['HTD5', 'GT2_3', 'GT2_2', 'RT25'].forEach(k => {
+                const btn = document.getElementById('pitch' + k);
+                if (btn) {
+                    if (k === key) {
+                        btn.className = 'py-1.5 rounded text-white bg-[#7e0c2b] font-bold transition';
+                    } else {
+                        btn.className = 'py-1.5 rounded text-neutral-400 font-medium transition';
+                    }
+                }
+            });
+
+            const badge = document.getElementById('pitchBadge');
+            if (badge) badge.innerText = preset.name;
+            recalculate();
+        }
+
+        function setUnit(unit) {
+            if (currentUnit === unit) return;
+            const oldUnit = currentUnit;
+            currentUnit = unit;
+
+            const unitIn = document.getElementById('unitIn');
+            const unitMm = document.getElementById('unitMm');
+            if (unitIn && unitMm) {
+                unitIn.className = `flex-1 py-1.5 rounded font-bold transition ${unit === 'in' ? 'bg-[#7e0c2b] text-white' : 'text-neutral-400'}`;
+                unitMm.className = `flex-1 py-1.5 rounded font-bold transition ${unit === 'mm' ? 'bg-[#7e0c2b] text-white' : 'text-neutral-400'}`;
+            }
+
+            document.querySelectorAll('.unitLabel').forEach(el => el.innerText = unit);
+
+            const targetInput = document.getElementById('inputTargetCenter');
+            const extraInput = document.getElementById('inputExtraCenter');
+
+            if (oldUnit === 'in' && unit === 'mm') {
+                targetInput.value = (parseFloat(targetInput.value || 0) * 25.4).toFixed(2);
+                extraInput.value = (parseFloat(extraInput.value || 0) * 25.4).toFixed(2);
+            } else if (oldUnit === 'mm' && unit === 'in') {
+                targetInput.value = (parseFloat(targetInput.value || 0) / 25.4).toFixed(3);
+                extraInput.value = (parseFloat(extraInput.value || 0) / 25.4).toFixed(3);
+            }
+
+            recalculate();
+        }
+
+        function getPitchDiameterMm(teeth, pitchMm) {
+            return (teeth * pitchMm) / Math.PI;
+        }
+
+        function getBeltLengthMm(C_mm, N1, N2, pitchMm) {
+            const D1 = getPitchDiameterMm(N1, pitchMm);
+            const D2 = getPitchDiameterMm(N2, pitchMm);
+            const diffR = Math.abs(D2 - D1) / 2;
+            if (C_mm <= diffR) return NaN;
+            const phi = Math.asin(diffR / C_mm);
+            return 2 * C_mm * Math.cos(phi) + Math.PI * ((D1 + D2) / 2) + 2 * diffR * phi;
+        }
+
+        function getCenterDistanceMm(L_mm, N1, N2, pitchMm) {
+            const D1 = getPitchDiameterMm(N1, pitchMm);
+            const D2 = getPitchDiameterMm(N2, pitchMm);
+            const diffR = Math.abs(D2 - D1) / 2;
+            const sumD = D1 + D2;
+            const b = (Math.PI / 2) * sumD - L_mm;
+            const c = Math.pow(D2 - D1, 2) / 4;
+            const disc = b * b - 8 * c;
+            let C = disc >= 0 ? (-b + Math.sqrt(disc)) / 4 : (L_mm - (Math.PI / 2) * sumD) / 2;
+            if (isNaN(C) || C <= diffR) C = diffR + 1.0;
+            for (let i = 0; i < 20; i++) {
+                if (C <= diffR) C = diffR + 0.001;
+                const phi = Math.asin(diffR / C);
+                const fC = 2 * C * Math.cos(phi) + (Math.PI / 2) * sumD + 2 * diffR * phi - L_mm;
+                const fPrimeC = 2 * Math.cos(phi);
+                if (Math.abs(fPrimeC) < 1e-9) break;
+                C -= fC / fPrimeC;
+            }
+            return C;
+        }
+
+        function recalculate() {
+            const rawTargetCenter = parseFloat(document.getElementById('inputTargetCenter').value) || 0;
+            const rawExtraCenter = parseFloat(document.getElementById('inputExtraCenter').value) || 0;
+            const N1 = parseInt(document.getElementById('inputP1').value) || 12;
+            const N2 = parseInt(document.getElementById('inputP2').value) || 12;
+
+            const targetCenterMm = currentUnit === 'in' ? rawTargetCenter * 25.4 : rawTargetCenter;
+            const extraCenterMm = currentUnit === 'in' ? rawExtraCenter * 25.4 : rawExtraCenter;
+
+            const pd1Mm = getPitchDiameterMm(N1, currentPitchMm);
+            const pd2Mm = getPitchDiameterMm(N2, currentPitchMm);
+            document.getElementById('pd1Display').innerText = `PD: ${currentUnit === 'in' ? (pd1Mm/25.4).toFixed(2) + ' in' : pd1Mm.toFixed(1) + ' mm'}`;
+            document.getElementById('pd2Display').innerText = `PD: ${currentUnit === 'in' ? (pd2Mm/25.4).toFixed(2) + ' in' : pd2Mm.toFixed(1) + ' mm'}`;
+
+            const exactBeltLenMm = getBeltLengthMm(targetCenterMm, N1, N2, currentPitchMm);
+            const exactTeethFloat = exactBeltLenMm / currentPitchMm;
+            const targetTeeth = Math.round(exactTeethFloat / 5) * 5;
+
+            renderBeltCard('selectedBeltCard', targetTeeth, targetCenterMm, extraCenterMm, N1, N2, true);
+            renderBeltCard('smallerBeltCard', targetTeeth - 5, targetCenterMm, extraCenterMm, N1, N2, false, 'Smaller Belt');
+            renderBeltCard('largerBeltCard', targetTeeth + 5, targetCenterMm, extraCenterMm, N1, N2, false, 'Larger Belt');
+            renderSvgDiagram(targetCenterMm, extraCenterMm, N1, N2, targetTeeth);
+        }
+
+        function renderBeltCard(elementId, teeth, targetCenterMm, extraCenterMm, N1, N2, isSelected, titleOverride) {
+            const container = document.getElementById(elementId);
+            if (!container || teeth <= 0) return;
+
+            const beltLengthMm = teeth * currentPitchMm;
+            const baseCenterMm = getCenterDistanceMm(beltLengthMm, N1, N2, currentPitchMm);
+            const actualCenterMm = baseCenterMm + extraCenterMm;
+            const diffMm = actualCenterMm - targetCenterMm;
+
+            const dispCenter = currentUnit === 'in' ? (actualCenterMm / 25.4).toFixed(3) : actualCenterMm.toFixed(2);
+            const dispDiff = currentUnit === 'in' ? (diffMm / 25.4).toFixed(3) : diffMm.toFixed(2);
+            const dispLen = currentUnit === 'in' ? (beltLengthMm / 25.4).toFixed(1) : beltLengthMm.toFixed(0);
+
+            if (isSelected) {
+                container.innerHTML = `
+                    <div class="flex justify-between items-start border-b border-neutral-800 pb-2">
+                        <div>
+                            <span class="text-[10px] text-[#7e0c2b] font-bold uppercase tracking-wider block">Ideal Match</span>
+                            <span class="text-base font-bold text-white flex items-center gap-1.5 mt-0.5">
+                                ${teeth} Teeth <span class="text-xs font-normal text-neutral-400">(${dispLen} ${currentUnit})</span>
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-neutral-400 block">Actual C2C</span>
+                            <span class="text-sm font-bold mono-num text-[#7e0c2b]">${dispCenter} ${currentUnit}</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-center text-xs pt-1">
+                        <div class="bg-neutral-950 p-2 rounded border border-neutral-800">
+                            <span class="block text-[9px] text-neutral-400 uppercase">Target Offset</span>
+                            <span class="mono-num font-semibold ${Math.abs(diffMm) < 0.5 ? 'text-emerald-400' : 'text-amber-400'}">${diffMm >= 0 ? '+' : ''}${dispDiff} ${currentUnit}</span>
+                        </div>
+                        <div class="bg-neutral-950 p-2 rounded border border-neutral-800">
+                            <span class="block text-[9px] text-neutral-400 uppercase">Pitch Preset</span>
+                            <span class="mono-num font-semibold text-white">${pitchPresetKey}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-semibold text-neutral-300">${titleOverride}</span>
+                        <span class="font-bold mono-num text-[#7e0c2b]">${teeth}T (${dispLen} ${currentUnit})</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs mono-num pt-1">
+                        <span class="text-neutral-400">C2C: <strong class="text-white">${dispCenter} ${currentUnit}</strong></span>
+                        <span class="${diffMm >= 0 ? 'text-emerald-400' : 'text-amber-400'}">${diffMm >= 0 ? '+' : ''}${dispDiff} ${currentUnit}</span>
+                    </div>
+                `;
+            }
+        }
+
+        function renderSvgDiagram(targetCenterMm, extraCenterMm, N1, N2, teeth) {
+            const svg = document.getElementById('beltSvg');
+            if (!svg) return;
+
+            const beltLengthMm = teeth * currentPitchMm;
+            const baseCenterMm = getCenterDistanceMm(beltLengthMm, N1, N2, currentPitchMm);
+            const actualCenterMm = isNaN(baseCenterMm) ? targetCenterMm : (baseCenterMm + extraCenterMm);
+
+            const r1 = getPitchDiameterMm(N1, currentPitchMm) / 2;
+            const r2 = getPitchDiameterMm(N2, currentPitchMm) / 2;
+
+            const displayCenterVal = actualCenterMm / (currentUnit === 'in' ? 25.4 : 1);
+            document.getElementById('diagramInfo').innerText = `${N1}T - ${N2}T @ ${displayCenterVal.toFixed(2)} ${currentUnit}`;
+
+            const maxAllowedC = 340;
+            const minAllowedC = 50;
+            
+            let scale = 1.8;
+            let scaledC = actualCenterMm * scale;
+            if (scaledC > maxAllowedC) {
+                scale = maxAllowedC / actualCenterMm;
+                scaledC = maxAllowedC;
+            } else if (scaledC < minAllowedC) {
+                scale = minAllowedC / Math.max(actualCenterMm, 10);
+                scaledC = actualCenterMm * scale;
+            }
+
+            const r1Svg = r1 * scale;
+            const r2Svg = r2 * scale;
+            const halfC = scaledC / 2;
+
+            const cx1 = 250 - halfC;
+            const cx2 = 250 + halfC;
+            const cy = 70;
+
+            const diffR = r2Svg - r1Svg;
+            const ratio = diffR / scaledC;
+            let angle = 0;
+            if (Math.abs(ratio) <= 1) {
+                angle = Math.asin(ratio);
+            }
+
+            const x1Top = cx1 + r1Svg * Math.sin(angle);
+            const y1Top = cy - r1Svg * Math.cos(angle);
+            const x2Top = cx2 + r2Svg * Math.sin(angle);
+            const y2Top = cy - r2Svg * Math.cos(angle);
+
+            const x1Bot = cx1 - r1Svg * Math.sin(angle);
+            const y1Bot = cy + r1Svg * Math.cos(angle);
+            const x2Bot = cx2 - r2Svg * Math.sin(angle);
+            const y2Bot = cy + r2Svg * Math.cos(angle);
+
+            svg.innerHTML = `
+                <g>
+                    <line x1="${cx1}" y1="${cy}" x2="${cx2}" y2="${cy}" stroke="#27272a" stroke-width="1.5" stroke-dasharray="3"/>
+
+                    <path d="
+                        M ${x1Top} ${y1Top}
+                        L ${x2Top} ${y2Top}
+                        A ${r2Svg} ${r2Svg} 0 0 1 ${x2Bot} ${y2Bot}
+                        L ${x1Bot} ${y1Bot}
+                        A ${r1Svg} ${r1Svg} 0 0 1 ${x1Top} ${y1Top}
+                    " fill="rgba(126, 12, 43, 0.1)" stroke="#7e0c2b" stroke-width="2" />
+
+                    <circle cx="${cx1}" cy="${cy}" r="${Math.max(8, r1Svg)}" fill="#000000" stroke="#7e0c2b" stroke-width="2"/>
+                    <circle cx="${cx1}" cy="${cy}" r="3" fill="#7e0c2b"/>
+                    <text x="${cx1}" y="${cy - Math.max(10, r1Svg) - 5}" text-anchor="middle" fill="#a1a1aa" font-size="9" font-weight="bold">${N1}T</text>
+
+                    <circle cx="${cx2}" cy="${cy}" r="${Math.max(8, r2Svg)}" fill="#000000" stroke="#7e0c2b" stroke-width="2"/>
+                    <circle cx="${cx2}" cy="${cy}" r="3" fill="#7e0c2b"/>
+                    <text x="${cx2}" y="${cy - Math.max(10, r2Svg) - 5}" text-anchor="middle" fill="#a1a1aa" font-size="9" font-weight="bold">${N2}T</text>
+                </g>
+            `;
+        }
+
         function calculateSpacers() {
-            const inputVal = document.getElementById('targetInput').value;
-            const targetMm = parseFloat(inputVal);
+            const val = parseFloat(document.getElementById('targetSpacerInput').value);
+            const unit = document.getElementById('spacerUnitSelect').value;
+            const container = document.getElementById('spacersResultsContainer');
+            const emptyState = document.getElementById('spacersEmptyState');
+            const list = document.getElementById('spacersList');
 
-            const resultsContainer = document.getElementById('resultsContainer');
-            const emptyState = document.getElementById('emptyState');
-            const spacersList = document.getElementById('spacersList');
-            const totalAchievedEl = document.getElementById('totalAchieved');
-            const remainderEl = document.getElementById('remainder');
-
-            if (isNaN(targetMm) || targetMm <= 0) {
-                resultsContainer.classList.add('hidden');
+            if (isNaN(val) || val <= 0) {
+                container.classList.add('hidden');
                 emptyState.classList.remove('hidden');
                 return;
             }
 
+            const targetMm = unit === 'in' ? val * 25.4 : val;
             let remaining = targetMm;
-            let totalAchieved = 0;
-            let htmlContent = '';
+            let achieved = 0;
+            let html = '';
 
-            spacerSizes.forEach(spacer => {
+            SPACER_SIZES.forEach(spacer => {
                 const count = Math.floor(remaining / spacer.mm);
                 if (count > 0) {
-                    const subTotal = count * spacer.mm;
-                    totalAchieved += subTotal;
-                    remaining -= subTotal;
-
-                    htmlContent += `
-                        <div class="flex items-center justify-between bg-black px-3 py-2.5 rounded-lg border border-neutral-800 text-xs">
+                    const stackVal = count * spacer.mm;
+                    achieved += stackVal;
+                    remaining -= stackVal;
+                    const dispStack = unit === 'in' ? (stackVal / 25.4).toFixed(3) + ' in' : stackVal.toFixed(2) + ' mm';
+                    html += `
+                        <div class="flex items-center justify-between bg-black px-3 py-2 rounded border border-neutral-800 text-xs">
                             <div class="flex items-center gap-2">
                                 <span class="w-1.5 h-1.5 rounded-full bg-[#7e0c2b] inline-block"></span>
                                 <span class="font-medium text-white">${count}x <span class="text-neutral-300">${spacer.name}</span></span>
                             </div>
-                            <span class="text-neutral-500 font-mono">${subTotal.toFixed(3)} mm</span>
+                            <span class="text-neutral-400 mono-num">${dispStack}</span>
                         </div>
                     `;
                 }
             });
 
-            spacersList.innerHTML = htmlContent;
-            totalAchievedEl.innerText = totalAchieved.toFixed(3) + ' mm';
-            remainderEl.innerText = remaining.toFixed(3) + ' mm';
+            list.innerHTML = html;
+            document.getElementById('totalAchieved').innerText = (unit === 'in' ? (achieved / 25.4).toFixed(3) + ' in' : achieved.toFixed(2) + ' mm');
+            document.getElementById('remainder').innerText = (unit === 'in' ? (remaining / 25.4).toFixed(3) + ' in' : remaining.toFixed(2) + ' mm');
 
+            container.classList.remove('hidden');
             emptyState.classList.add('hidden');
-            resultsContainer.classList.remove('hidden');
         }
 
-        // Register the service worker that makes the app installable/offline-capable.
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .catch(error => console.error('Service worker registration failed:', error));
-            });
-        }
+        window.onload = function() {
+            recalculate();
+        };
     </script>
 </body>
 </html>
