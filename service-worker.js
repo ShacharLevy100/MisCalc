@@ -1,11 +1,14 @@
-const CACHE_NAME = "frc-mechanical-calculator-v1";
+
+const CACHE_NAME = "miscalc-cache-v2";
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
   "./service-worker.js",
-  "./icon.svg"
+  "./icon.svg",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
 self.addEventListener("install", event => {
