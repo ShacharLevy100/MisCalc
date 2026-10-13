@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
     <meta name="description" content="Spacer and Timing Belt Calculator">
     <link rel="manifest" href="./manifest.json">
@@ -38,9 +38,76 @@
         .tab-btn {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        /* Responsive page layout. The body selectors intentionally outrank Tailwind utilities. */
+        *, *::before, *::after { box-sizing: border-box; }
+        html { min-height: 100%; background: #000; }
+        body.app-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100svh;
+            min-height: 100dvh;
+            margin: 0;
+            padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+        }
+        body.app-page > div {
+            width: min(100%, 28rem);
+            min-width: 0;
+            margin-block: auto;
+            padding: clamp(.875rem, 4vw, 1.5rem);
+        }
+        body.app-page input[type="number"], body.app-page select { font-size: 16px; }
+        body.app-page button, body.app-page select, body.app-page input { max-width: 100%; touch-action: manipulation; }
+        body.app-page svg { display: block; max-width: 100%; height: auto; }
+        body.app-page #spacersList, body.app-page #selectedBeltCard { min-width: 0; overflow-wrap: anywhere; }
+        @media (max-width: 360px) {
+            body.app-page { padding-left: max(.625rem, env(safe-area-inset-left)); padding-right: max(.625rem, env(safe-area-inset-right)); }
+            body.app-page > div { border-radius: .75rem; }
+            body.app-page .tab-btn { padding-left: .625rem; padding-right: .625rem; }
+        }
+        @media (max-height: 560px) and (orientation: landscape) {
+            body.app-page { justify-content: flex-start; }
+            body.app-page > div { margin-block: 0; }
+        }
+        @media (min-width: 768px) {
+            body.app-page { padding-top: max(2rem, env(safe-area-inset-top)); padding-bottom: max(2rem, env(safe-area-inset-bottom)); }
+        }
+        /* Desktop: give the calculator room and use a two-column workspace. */
+        @media (min-width: 960px) {
+            body.app-page > div {
+                width: min(100%, 78rem);
+                max-width: none;
+                padding: clamp(1.5rem, 2.5vw, 2.5rem);
+                gap: 1.5rem;
+            }
+            body.app-page #sectionSpacers:not(.hidden) {
+                width: min(100%, 52rem);
+                justify-self: center;
+            }
+            body.app-page #sectionBelts:not(.hidden) {
+                display: grid;
+                grid-template-columns: minmax(19rem, .85fr) minmax(0, 1.15fr);
+                grid-template-areas:
+                    "selectors selectors"
+                    "parameters diagram"
+                    "parameters results";
+                align-items: start;
+                gap: 1.25rem 1.5rem;
+            }
+            body.app-page #sectionBelts:not(.hidden) > * { min-width: 0; margin-top: 0; }
+            body.app-page #sectionBelts:not(.hidden) > :nth-child(1) { grid-area: selectors; }
+            body.app-page #sectionBelts:not(.hidden) > :nth-child(2) { grid-area: parameters; }
+            body.app-page #sectionBelts:not(.hidden) > :nth-child(3) { grid-area: diagram; }
+            body.app-page #sectionBelts:not(.hidden) > :nth-child(4) { grid-area: results; }
+            body.app-page #sectionBelts:not(.hidden) > :nth-child(3) > div:nth-child(2) {
+                height: clamp(13rem, 22vw, 20rem);
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
+<body class="app-page">
 
     <div class="w-full max-w-md bg-neutral-900 rounded-xl border border-neutral-800 p-6 shadow-2xl space-y-6">
 
@@ -531,3 +598,5 @@
     </script>
 </body>
 </html>
+
+
