@@ -62,6 +62,7 @@
         body.app-page button, body.app-page select, body.app-page input { max-width: 100%; touch-action: manipulation; }
         body.app-page svg { display: block; max-width: 100%; height: auto; }
         body.app-page #spacersList, body.app-page #selectedBeltCard { min-width: 0; overflow-wrap: anywhere; }
+        body.app-page #recentHistoryList { max-height: 13rem; overflow-y: auto; }
         @media (max-width: 360px) {
             body.app-page { padding-left: max(.625rem, env(safe-area-inset-left)); padding-right: max(.625rem, env(safe-area-inset-right)); }
             body.app-page > div { border-radius: .75rem; }
@@ -125,6 +126,20 @@
                 <button onclick="switchTab('belts')" id="tabBelts" class="tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md text-neutral-400 hover:text-white">Timing Belts</button>
             </div>
         </div>
+
+        <details id="recentHistory" class="-mt-3 border-b border-neutral-800 pb-3">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7e0c2b] rounded">
+                <span class="flex items-center gap-2"><span class="text-[#7e0c2b]" aria-hidden="true">↺</span> Recent Calculations <span id="recentHistoryCount" class="text-[10px] font-medium text-neutral-500">0</span></span>
+                <span class="text-[10px] font-medium text-neutral-500">This device</span>
+            </summary>
+            <div class="mt-3 space-y-2">
+                <div id="recentHistoryList" class="space-y-1.5" aria-live="polite"></div>
+                <p id="recentHistoryEmpty" class="hidden rounded-md border border-neutral-800 bg-black px-3 py-2.5 text-[11px] text-neutral-500">Your recent calculations will appear here automatically.</p>
+                <div class="flex justify-end">
+                    <button type="button" id="clearRecentHistory" onclick="clearRecentHistory()" class="hidden rounded px-2 py-1 text-[10px] font-medium text-neutral-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7e0c2b]">Clear history</button>
+                </div>
+            </div>
+        </details>
 
         <!-- ================= SPACERS TAB (Default) ================= -->
         <div id="sectionSpacers" class="space-y-4">
@@ -262,6 +277,11 @@
         let currentUnit = 'mm';
         let currentPitchMm = 5.0;
         let pitchPresetKey = 'HTD5';
+        const RECENT_HISTORY_KEY = 'miscalc.recent-calculations.v1';
+        const RECENT_HISTORY_LIMIT = 10;
+        let recentCalculations = [];
+        let historySaveTimer = null;
+        let restoringCalculation = false;
 
         const PITCH_PRESETS = {
             'HTD5': { name: 'HTD 5mm', pitchMm: 5.0 },
@@ -304,7 +324,12 @@
             const targetCenterInput = document.getElementById('inputTargetCenter');
             if (targetCenterInput) targetCenterInput.value = "125.000";
 
+            recentCalculations = readRecentCalculations();
+            renderRecentCalculations();
+
+            restoringCalculation = true;
             recalculate();
+            restoringCalculation = false;
         });
 
         function setPitch(key) {
@@ -412,6 +437,15 @@
             renderBeltCard('smallerBeltCard', targetTeeth - 5, targetCenterMm, extraCenterMm, N1, N2, false, 'Smaller Belt');
             renderBeltCard('largerBeltCard', targetTeeth + 5, targetCenterMm, extraCenterMm, N1, N2, false, 'Larger Belt');
             renderSvgDiagram(targetCenterMm, extraCenterMm, N1, N2, targetTeeth);
+            if (!restoringCalculation && targetCenterMm > 0 && N1 > 0 && N2 > 0) {
+                queueRecentCalculation({
+                    type: 'belts', unit: currentUnit, pitch: pitchPresetKey,
+                    targetCenter: document.getElementById('inputTargetCenter').value,
+                    extraCenter: document.getElementById('inputExtraCenter').value,
+                    pulley1: document.getElementById('inputP1').value,
+                    pulley2: document.getElementById('inputP2').value
+                });
+            } else if (!restoringCalculation) clearTimeout(historySaveTimer);
         }
 
         function renderBeltCard(elementId, teeth, targetCenterMm, extraCenterMm, N1, N2, isSelected, titleOverride) {
@@ -549,6 +583,7 @@
             const list = document.getElementById('spacersList');
 
             if (isNaN(val) || val <= 0) {
+                clearTimeout(historySaveTimer);
                 container.classList.add('hidden');
                 emptyState.classList.remove('hidden');
                 return;
@@ -584,11 +619,121 @@
 
             container.classList.remove('hidden');
             emptyState.classList.add('hidden');
+            if (!restoringCalculation) queueRecentCalculation({
+                type: 'spacers', unit,
+                target: document.getElementById('targetSpacerInput').value
+            });
         }
 
-        window.onload = function() {
-            recalculate();
-        };
+        function readRecentCalculations() {
+            try {
+                const stored = JSON.parse(localStorage.getItem(RECENT_HISTORY_KEY) || '[]');
+                if (!Array.isArray(stored)) return [];
+                return stored.filter(item => item && item.snapshot &&
+                    ['belts', 'spacers'].includes(item.snapshot.type) &&
+                    typeof item.timestamp === 'number').slice(0, RECENT_HISTORY_LIMIT);
+            } catch (_) { return []; }
+        }
+
+        function persistRecentCalculations() {
+            try { localStorage.setItem(RECENT_HISTORY_KEY, JSON.stringify(recentCalculations)); }
+            catch (_) { /* Keep the calculator usable when storage is unavailable. */ }
+        }
+
+        function queueRecentCalculation(snapshot) {
+            clearTimeout(historySaveTimer);
+            historySaveTimer = setTimeout(() => saveRecentCalculation(snapshot), 700);
+        }
+
+        function saveRecentCalculation(snapshot) {
+            const key = JSON.stringify(snapshot);
+            recentCalculations = recentCalculations.filter(item => JSON.stringify(item.snapshot) !== key);
+            recentCalculations.unshift({ snapshot, timestamp: Date.now() });
+            recentCalculations = recentCalculations.slice(0, RECENT_HISTORY_LIMIT);
+            persistRecentCalculations();
+            renderRecentCalculations();
+        }
+
+        function describeRecentCalculation(snapshot) {
+            if (snapshot.type === 'spacers') return {
+                title: 'Spacer Stack',
+                detail: `${snapshot.target} ${snapshot.unit} target`
+            };
+            const pitchName = PITCH_PRESETS[snapshot.pitch]?.name || snapshot.pitch;
+            return {
+                title: `Timing Belt · ${snapshot.pulley1}T / ${snapshot.pulley2}T`,
+                detail: `${snapshot.targetCenter} ${snapshot.unit} C2C · ${pitchName}`
+            };
+        }
+
+        function formatRecentTime(timestamp) {
+            const elapsed = Math.max(0, Date.now() - timestamp);
+            if (elapsed < 60_000) return 'Just now';
+            if (elapsed < 3_600_000) return `${Math.floor(elapsed / 60_000)} min ago`;
+            if (elapsed < 86_400_000) return `${Math.floor(elapsed / 3_600_000)} hr ago`;
+            return new Date(timestamp).toLocaleDateString();
+        }
+
+        function renderRecentCalculations() {
+            const list = document.getElementById('recentHistoryList');
+            if (!list) return;
+            list.replaceChildren();
+            document.getElementById('recentHistoryCount').textContent = String(recentCalculations.length);
+            document.getElementById('recentHistoryEmpty').classList.toggle('hidden', recentCalculations.length > 0);
+            document.getElementById('clearRecentHistory').classList.toggle('hidden', recentCalculations.length === 0);
+            recentCalculations.forEach((item, index) => {
+                const description = describeRecentCalculation(item.snapshot);
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'flex w-full items-center justify-between gap-3 rounded-md border border-neutral-800 bg-black px-3 py-2 text-left transition hover:border-[#7e0c2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7e0c2b]';
+                button.setAttribute('aria-label', `Restore ${description.title}, ${description.detail}, ${formatRecentTime(item.timestamp)}`);
+                const text = document.createElement('span');
+                text.className = 'min-w-0';
+                const title = document.createElement('span');
+                title.className = 'block truncate text-[11px] font-semibold text-neutral-200';
+                title.textContent = description.title;
+                const detail = document.createElement('span');
+                detail.className = 'mt-0.5 block truncate font-mono text-[10px] text-neutral-500';
+                detail.textContent = description.detail;
+                text.append(title, detail);
+                const time = document.createElement('span');
+                time.className = 'shrink-0 text-[10px] text-neutral-500';
+                time.textContent = formatRecentTime(item.timestamp);
+                button.append(text, time);
+                button.addEventListener('click', () => restoreRecentCalculation(index));
+                list.append(button);
+            });
+        }
+
+        function restoreRecentCalculation(index) {
+            const item = recentCalculations[index];
+            if (!item) return;
+            clearTimeout(historySaveTimer);
+            restoringCalculation = true;
+            const snapshot = item.snapshot;
+            if (snapshot.type === 'spacers') {
+                switchTab('spacers');
+                document.getElementById('spacerUnitSelect').value = snapshot.unit;
+                document.getElementById('targetSpacerInput').value = snapshot.target;
+                calculateSpacers();
+            } else {
+                switchTab('belts');
+                if (currentUnit !== snapshot.unit) setUnit(snapshot.unit);
+                if (pitchPresetKey !== snapshot.pitch) setPitch(snapshot.pitch);
+                document.getElementById('inputTargetCenter').value = snapshot.targetCenter;
+                document.getElementById('inputExtraCenter').value = snapshot.extraCenter;
+                document.getElementById('inputP1').value = snapshot.pulley1;
+                document.getElementById('inputP2').value = snapshot.pulley2;
+                recalculate();
+            }
+            restoringCalculation = false;
+        }
+
+        function clearRecentHistory() {
+            recentCalculations = [];
+            persistRecentCalculations();
+            renderRecentCalculations();
+        }
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

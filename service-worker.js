@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "miscalc-cache-v2";
+const CACHE_NAME = "miscalc-cache-v3";
 
 const APP_SHELL = [
   "./",
