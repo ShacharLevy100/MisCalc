@@ -36,7 +36,62 @@
             border-radius: 4px;
         }
         .tab-btn {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-color .22s ease, color .22s ease, box-shadow .22s ease, transform .22s cubic-bezier(.2,.8,.2,1);
+        }
+        .segmented-control { position: relative; isolation: isolate; }
+        .segmented-highlight {
+            position: absolute;
+            z-index: 0;
+            top: 4px;
+            bottom: 4px;
+            left: 0;
+            width: 0;
+            border-radius: .3rem;
+            background: #7e0c2b;
+            box-shadow: 0 2px 8px rgba(126,12,43,.28);
+            pointer-events: none;
+            transition: transform .32s cubic-bezier(.22,.8,.22,1), width .32s cubic-bezier(.22,.8,.22,1);
+            will-change: transform, width;
+        }
+        .segmented-button { position: relative; z-index: 1; transition: color .2s ease; }
+        .segmented-button[aria-pressed="true"] { color: #fff; font-weight: 700; }
+        body.app-page > div { transition: box-shadow .25s ease, border-color .25s ease; }
+        body.app-page > div { interpolate-size: allow-keywords; }
+        body.app-page button, body.app-page select, body.app-page input {
+            transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s cubic-bezier(.2,.8,.2,1);
+        }
+        body.app-page button:hover:not(:disabled):not(.copy-control) { transform: translateY(-1px); }
+        body.app-page button:active:not(:disabled):not(.copy-control) { transform: translateY(0) scale(.98); }
+        #recentHistory > div { animation: history-reveal .28s cubic-bezier(.2,.75,.25,1) both; }
+        #recentHistory::details-content {
+            interpolate-size: allow-keywords;
+            display: block;
+            block-size: 0;
+            overflow: clip;
+            opacity: 0;
+            transition: block-size .28s cubic-bezier(.2,.75,.25,1), opacity .2s ease, content-visibility .28s allow-discrete;
+        }
+        #recentHistory[open]::details-content { block-size: auto; opacity: 1; }
+        #recentHistory[open] #recentHistoryList > button { animation: history-item-enter .24s cubic-bezier(.2,.75,.25,1) both; }
+        #recentHistory[open] #recentHistoryList > button:nth-child(2) { animation-delay: 25ms; }
+        #recentHistory[open] #recentHistoryList > button:nth-child(3) { animation-delay: 45ms; }
+        #recentHistory[open] #recentHistoryList > button:nth-child(n+4) { animation-delay: 60ms; }
+        .copy-control svg { transform-origin: center; animation: copy-icon-enter .22s cubic-bezier(.2,.8,.2,1) both; }
+        .copy-control.is-copied { animation: copy-confirm .3s cubic-bezier(.2,.8,.2,1) both; }
+        .spacer-row { transition: border-color .2s ease, background-color .2s ease, transform .2s cubic-bezier(.2,.8,.2,1); }
+        .spacer-row:hover { transform: translateX(2px); border-color: rgba(126,12,43,.55); }
+        #selectedBeltCard, #smallerBeltCard, #largerBeltCard { transition: border-color .22s ease, box-shadow .22s ease, transform .22s cubic-bezier(.2,.8,.2,1); }
+        #selectedBeltCard:hover, #smallerBeltCard:hover, #largerBeltCard:hover { transform: translateY(-2px); }
+        @keyframes panel-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes history-reveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes history-item-enter { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes copy-icon-enter { from { opacity: 0; transform: scale(.65) rotate(-18deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+        @keyframes copy-confirm { 0% { transform: translateY(-50%) scale(.9); } 65% { transform: translateY(-50%) scale(1.08); } 100% { transform: translateY(-50%) scale(1); } }
+        @keyframes page-enter { from { opacity: 0; transform: translateY(10px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        body.app-page > div { animation: page-enter .42s cubic-bezier(.2,.75,.25,1) both; }
+        @keyframes result-enter { from { opacity: 0; transform: translateY(5px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
         }
         .copy-control {
             position: absolute;
@@ -217,11 +272,12 @@
                         <label class="text-xs font-medium text-neutral-300">Belt Pitch</label>
                         <span id="pitchBadge" class="text-[11px] text-[#7e0c2b] font-bold mono-num">HTD 5mm</span>
                     </div>
-                    <div class="grid grid-cols-4 gap-1 bg-neutral-900 p-1 rounded-md border border-neutral-800 text-[10px]">
-                        <button type="button" onclick="setPitch('HTD5')" id="pitchHTD5" class="py-1.5 rounded text-white bg-[#7e0c2b] font-bold transition">5mm</button>
-                        <button type="button" onclick="setPitch('GT2_3')" id="pitchGT2_3" class="py-1.5 rounded text-neutral-400 font-medium transition">3mm</button>
-                        <button type="button" onclick="setPitch('GT2_2')" id="pitchGT2_2" class="py-1.5 rounded text-neutral-400 font-medium transition">2mm</button>
-                        <button type="button" onclick="setPitch('RT25')" id="pitchRT25" class="py-1.5 rounded text-neutral-400 font-medium transition">0.25"</button>
+                    <div id="pitchSegments" class="segmented-control grid grid-cols-4 gap-1 bg-neutral-900 p-1 rounded-md border border-neutral-800 text-[10px]" style="--segment-count:4;--selected-index:0" role="group" aria-label="Belt pitch">
+                        <span class="segmented-highlight" aria-hidden="true"></span>
+                        <button type="button" onclick="setPitch('HTD5')" id="pitchHTD5" data-segment-index="0" aria-pressed="true" class="segmented-button py-1.5 rounded text-neutral-400 font-medium">5mm</button>
+                        <button type="button" onclick="setPitch('GT2_3')" id="pitchGT2_3" data-segment-index="1" aria-pressed="false" class="segmented-button py-1.5 rounded text-neutral-400 font-medium">3mm</button>
+                        <button type="button" onclick="setPitch('GT2_2')" id="pitchGT2_2" data-segment-index="2" aria-pressed="false" class="segmented-button py-1.5 rounded text-neutral-400 font-medium">2mm</button>
+                        <button type="button" onclick="setPitch('RT25')" id="pitchRT25" data-segment-index="3" aria-pressed="false" class="segmented-button py-1.5 rounded text-neutral-400 font-medium">0.25"</button>
                     </div>
                 </div>
 
@@ -230,9 +286,10 @@
                         <label class="text-xs font-medium text-neutral-300">Units</label>
                         <span class="text-[11px] text-neutral-500">in / mm</span>
                     </div>
-                    <div class="flex bg-neutral-900 p-1 rounded-md border border-neutral-800 text-xs gap-1">
-                        <button type="button" onclick="setUnit('in')" id="unitIn" class="flex-1 py-1.5 rounded font-medium transition text-neutral-400">Imperial</button>
-                        <button type="button" onclick="setUnit('mm')" id="unitMm" class="flex-1 py-1.5 rounded font-bold transition bg-[#7e0c2b] text-white">Metric</button>
+                    <div id="unitSegments" class="segmented-control flex bg-neutral-900 p-1 rounded-md border border-neutral-800 text-xs gap-1" style="--segment-count:2;--selected-index:1" role="group" aria-label="Units">
+                        <span class="segmented-highlight" aria-hidden="true"></span>
+                        <button type="button" onclick="setUnit('in')" id="unitIn" data-segment-index="0" aria-pressed="false" class="segmented-button flex-1 py-1.5 rounded font-medium text-neutral-400">Imperial</button>
+                        <button type="button" onclick="setUnit('mm')" id="unitMm" data-segment-index="1" aria-pressed="true" class="segmented-button flex-1 py-1.5 rounded text-neutral-400 font-medium">Metric</button>
                     </div>
                 </div>
             </div>
@@ -244,7 +301,7 @@
                         <label class="block text-xs text-neutral-300 font-medium">
                             Target C2C (<span class="unitLabel">mm</span>)
                         </label>
-                        <input type="number" id="inputTargetCenter" step="0.001" value="125.000" oninput="recalculate()"
+                    <input type="number" id="inputTargetCenter" min="0.001" step="0.001" value="125.000" oninput="recalculate()"
                             class="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-white font-medium mono-num focus:outline-none focus:border-[#7e0c2b] transition">
                     </div>
 
@@ -259,7 +316,7 @@
                             <label class="block text-xs text-neutral-300 font-medium">Pulley 1 (Teeth)</label>
                             <span id="pd1Display" class="text-[10px] text-[#7e0c2b] font-bold mono-num">PD: 38.2 mm</span>
                         </div>
-                        <input type="number" id="inputP1" step="1" value="24" oninput="recalculate()"
+                        <input type="number" id="inputP1" min="1" step="1" value="24" oninput="recalculate()"
                             class="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-white font-medium mono-num focus:outline-none focus:border-[#7e0c2b] transition">
                     </div>
 
@@ -268,7 +325,7 @@
                             <label class="block text-xs text-neutral-300 font-medium">Pulley 2 (Teeth)</label>
                             <span id="pd2Display" class="text-[10px] text-[#7e0c2b] font-bold mono-num">PD: 38.2 mm</span>
                         </div>
-                        <input type="number" id="inputP2" step="1" value="24" oninput="recalculate()"
+                        <input type="number" id="inputP2" min="1" step="1" value="24" oninput="recalculate()"
                             class="w-full bg-black border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-white font-medium mono-num focus:outline-none focus:border-[#7e0c2b] transition">
                     </div>
                 </div>
@@ -326,23 +383,111 @@
             { name: '1/32"', mm: 0.79375 }
         ];
 
+        function animateIn(element, animation = 'panel-enter') {
+            if (!element || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
+            return element.animate(
+                animation === 'result-enter'
+                    ? [{ opacity: 0, transform: 'translateY(5px) scale(.99)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }]
+                    : [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }],
+                { duration: 280, easing: 'cubic-bezier(.2,.75,.25,1)' }
+            );
+        }
+
+        function animateHeightChange(element, update, duration = 340) {
+            if (!element) { update(); return; }
+            if (element._heightAnimation) {
+                if (element._heightAnimation.commitStyles) element._heightAnimation.commitStyles();
+                element._heightAnimation.cancel();
+                element._heightAnimation = null;
+            }
+            const oldHeight = element.getBoundingClientRect().height;
+            element.style.removeProperty('height');
+            element.style.removeProperty('overflow');
+            update();
+            const newHeight = element.getBoundingClientRect().height;
+            if (Math.abs(oldHeight - newHeight) < 1 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            element.style.height = `${oldHeight}px`;
+            element.style.overflow = 'clip';
+            element.getBoundingClientRect();
+            const animation = element.animate(
+                [{ height: `${oldHeight}px` }, { height: `${newHeight}px` }],
+                { duration, easing: 'cubic-bezier(.22,.8,.22,1)' }
+            );
+            element._heightAnimation = animation;
+            animation.onfinish = () => {
+                if (element._heightAnimation !== animation) return;
+                element.style.removeProperty('height');
+                element.style.removeProperty('overflow');
+                element._heightAnimation = null;
+            };
+        }
+
+        function updateSegmentedControl(controlId, selectedIndex) {
+            const control = document.getElementById(controlId);
+            if (!control) return;
+            control.style.setProperty('--selected-index', selectedIndex);
+            const buttons = [...control.querySelectorAll('[data-segment-index]')];
+            buttons.forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.segmentIndex) === selectedIndex)));
+            const selectedButton = buttons.find(button => Number(button.dataset.segmentIndex) === selectedIndex);
+            const highlight = control.querySelector('.segmented-highlight');
+            if (!selectedButton || !highlight) return;
+            const buttonRect = selectedButton.getBoundingClientRect();
+            const controlRect = control.getBoundingClientRect();
+            if (!buttonRect.width || !controlRect.width) return;
+            const left = buttonRect.left - controlRect.left - control.clientLeft;
+            highlight.style.width = `${buttonRect.width}px`;
+            highlight.style.transform = `translateX(${left}px)`;
+        }
+
+        window.addEventListener('resize', () => {
+            const pitchIndex = ['HTD5', 'GT2_3', 'GT2_2', 'RT25'].indexOf(pitchPresetKey);
+            updateSegmentedControl('pitchSegments', pitchIndex < 0 ? 0 : pitchIndex);
+            updateSegmentedControl('unitSegments', currentUnit === 'in' ? 0 : 1);
+        });
+
         function switchTab(tab) {
             const isSpacers = tab === 'spacers';
+            const shell = document.querySelector('body.app-page > div');
+            if (shell._heightAnimation) {
+                if (shell._heightAnimation.commitStyles) shell._heightAnimation.commitStyles();
+                shell._heightAnimation.cancel();
+                shell._heightAnimation = null;
+            }
+            const oldHeight = shell.getBoundingClientRect().height;
+            shell.style.removeProperty('height');
+            const wasSpacers = !document.getElementById('sectionSpacers').classList.contains('hidden');
+            if (wasSpacers === isSpacers) return;
             document.getElementById('sectionSpacers').classList.toggle('hidden', !isSpacers);
             document.getElementById('sectionBelts').classList.toggle('hidden', isSpacers);
+            const activeSection = document.getElementById(isSpacers ? 'sectionSpacers' : 'sectionBelts');
+            const newHeight = shell.getBoundingClientRect().height;
             
             document.getElementById('tabSpacers').className = `tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition ${isSpacers ? 'bg-[#7e0c2b] text-white shadow-md' : 'text-neutral-400 hover:text-white'}`;
             document.getElementById('tabBelts').className = `tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition ${!isSpacers ? 'bg-[#7e0c2b] text-white shadow-md' : 'text-neutral-400 hover:text-white'}`;
+            animateIn(activeSection);
+            requestAnimationFrame(() => {
+                updateSegmentedControl('pitchSegments', ['HTD5', 'GT2_3', 'GT2_2', 'RT25'].indexOf(pitchPresetKey));
+                updateSegmentedControl('unitSegments', currentUnit === 'in' ? 0 : 1);
+            });
+            if (oldHeight !== newHeight && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                shell.style.height = `${oldHeight}px`;
+                shell.getBoundingClientRect();
+                const heightAnimation = shell.animate([{ height: `${oldHeight}px` }, { height: `${newHeight}px` }], {
+                    duration: 360, easing: 'cubic-bezier(.22,.8,.22,1)'
+                });
+                shell._heightAnimation = heightAnimation;
+                heightAnimation.onfinish = () => {
+                    if (shell._heightAnimation !== heightAnimation) return;
+                    shell.style.removeProperty('height');
+                    shell._heightAnimation = null;
+                };
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeCopyControls();
-            const unitIn = document.getElementById('unitIn');
-            const unitMm = document.getElementById('unitMm');
-            if (unitIn && unitMm) {
-                unitIn.className = 'flex-1 py-1.5 rounded font-medium transition text-neutral-400';
-                unitMm.className = 'flex-1 py-1.5 rounded font-bold transition bg-[#7e0c2b] text-white';
-            }
+            updateSegmentedControl('pitchSegments', 0);
+            updateSegmentedControl('unitSegments', 1);
             document.querySelectorAll('.unitLabel').forEach(el => el.innerText = 'mm');
             
             const spacerUnitSelect = document.getElementById('spacerUnitSelect');
@@ -421,20 +566,11 @@
             const preset = PITCH_PRESETS[key];
             currentPitchMm = preset.pitchMm;
 
-            ['HTD5', 'GT2_3', 'GT2_2', 'RT25'].forEach(k => {
-                const btn = document.getElementById('pitch' + k);
-                if (btn) {
-                    if (k === key) {
-                        btn.className = 'py-1.5 rounded text-white bg-[#7e0c2b] font-bold transition';
-                    } else {
-                        btn.className = 'py-1.5 rounded text-neutral-400 font-medium transition';
-                    }
-                }
-            });
+            updateSegmentedControl('pitchSegments', ['HTD5', 'GT2_3', 'GT2_2', 'RT25'].indexOf(key));
 
             const badge = document.getElementById('pitchBadge');
             if (badge) badge.innerText = preset.name;
-            recalculate();
+            recalculate({ animate: !restoringCalculation });
         }
 
         function setUnit(unit) {
@@ -442,12 +578,7 @@
             const oldUnit = currentUnit;
             currentUnit = unit;
 
-            const unitIn = document.getElementById('unitIn');
-            const unitMm = document.getElementById('unitMm');
-            if (unitIn && unitMm) {
-                unitIn.className = `flex-1 py-1.5 rounded font-bold transition ${unit === 'in' ? 'bg-[#7e0c2b] text-white' : 'text-neutral-400'}`;
-                unitMm.className = `flex-1 py-1.5 rounded font-bold transition ${unit === 'mm' ? 'bg-[#7e0c2b] text-white' : 'text-neutral-400'}`;
-            }
+            updateSegmentedControl('unitSegments', unit === 'in' ? 0 : 1);
 
             document.querySelectorAll('.unitLabel').forEach(el => el.innerText = unit);
 
@@ -462,7 +593,7 @@
                 extraInput.value = (parseFloat(extraInput.value || 0) / 25.4).toFixed(3);
             }
 
-            recalculate();
+            recalculate({ animate: !restoringCalculation });
         }
 
         function getPitchDiameterMm(teeth, pitchMm) {
@@ -499,7 +630,7 @@
             return C;
         }
 
-        function recalculate() {
+        function recalculate(options = {}) {
             const rawTargetCenter = parseFloat(document.getElementById('inputTargetCenter').value) || 0;
             const rawExtraCenter = parseFloat(document.getElementById('inputExtraCenter').value) || 0;
             const N1 = parseInt(document.getElementById('inputP1').value) || 12;
@@ -522,6 +653,10 @@
             renderBeltCard('largerBeltCard', targetTeeth + 5, targetCenterMm, extraCenterMm, N1, N2, false, 'Larger Belt');
             renderSvgDiagram(targetCenterMm, extraCenterMm, N1, N2, targetTeeth);
             initializeCopyControls();
+            if (options.animate) {
+                ['selectedBeltCard', 'smallerBeltCard', 'largerBeltCard'].forEach(id => animateIn(document.getElementById(id), 'result-enter'));
+                animateIn(document.getElementById('beltSvg').parentElement, 'result-enter');
+            }
             if (!restoringCalculation && targetCenterMm > 0 && N1 > 0 && N2 > 0) {
                 queueRecentCalculation({
                     type: 'belts', unit: currentUnit, pitch: pitchPresetKey,
@@ -535,7 +670,13 @@
 
         function renderBeltCard(elementId, teeth, targetCenterMm, extraCenterMm, N1, N2, isSelected, titleOverride) {
             const container = document.getElementById(elementId);
-            if (!container || teeth <= 0) return;
+            if (!container) return;
+            if (teeth <= 0 || !Number.isFinite(teeth)) {
+                container.replaceChildren();
+                container.classList.add('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
 
             const beltLengthMm = teeth * currentPitchMm;
             const baseCenterMm = getCenterDistanceMm(beltLengthMm, N1, N2, currentPitchMm);
@@ -591,73 +732,79 @@
 
             const beltLengthMm = teeth * currentPitchMm;
             const baseCenterMm = getCenterDistanceMm(beltLengthMm, N1, N2, currentPitchMm);
-            const actualCenterMm = isNaN(baseCenterMm) ? targetCenterMm : (baseCenterMm + extraCenterMm);
-
-            const r1 = getPitchDiameterMm(N1, currentPitchMm) / 2;
-            const r2 = getPitchDiameterMm(N2, currentPitchMm) / 2;
+            const proposedCenter = Number.isFinite(baseCenterMm) ? baseCenterMm + extraCenterMm : targetCenterMm;
+            const r1 = Math.max(0, getPitchDiameterMm(N1, currentPitchMm) / 2);
+            const r2 = Math.max(0, getPitchDiameterMm(N2, currentPitchMm) / 2);
+            const minimumCenter = Math.abs(r2 - r1) + .25;
+            const centerIsValid = Number.isFinite(proposedCenter) && proposedCenter > minimumCenter;
+            const actualCenterMm = centerIsValid ? proposedCenter : minimumCenter;
 
             const displayCenterVal = actualCenterMm / (currentUnit === 'in' ? 25.4 : 1);
-            document.getElementById('diagramInfo').innerText = `${N1}T - ${N2}T @ ${displayCenterVal.toFixed(2)} ${currentUnit}`;
+            document.getElementById('diagramInfo').innerText = centerIsValid
+                ? `${N1}T - ${N2}T @ ${displayCenterVal.toFixed(2)} ${currentUnit}`
+                : `${N1}T - ${N2}T · C2C too short`;
 
-            const maxAllowedC = 340;
-            const minAllowedC = 50;
-            
-            let scale = 1.8;
-            let scaledC = actualCenterMm * scale;
-            if (scaledC > maxAllowedC) {
-                scale = maxAllowedC / actualCenterMm;
-                scaledC = maxAllowedC;
-            } else if (scaledC < minAllowedC) {
-                scale = minAllowedC / Math.max(actualCenterMm, 10);
-                scaledC = actualCenterMm * scale;
+            // Fit center distance and both pulley radii inside the SVG safe area.
+            const largestRadius = Math.max(r1, r2, 1);
+            const scale = Math.min(1.8, 440 / (actualCenterMm + 2 * largestRadius), 104 / (2 * largestRadius), 340 / actualCenterMm);
+            const target = {
+                cx1: 250 - actualCenterMm * scale / 2,
+                cx2: 250 + actualCenterMm * scale / 2,
+                cy: 70,
+                r1: Math.max(8, r1 * scale),
+                r2: Math.max(8, r2 * scale)
+            };
+
+            const draw = geometry => {
+                const centerDistance = Math.max(.001, geometry.cx2 - geometry.cx1);
+                const angle = Math.asin(Math.max(-1, Math.min(1, (geometry.r2 - geometry.r1) / centerDistance)));
+                const x1Top = geometry.cx1 + geometry.r1 * Math.sin(angle);
+                const y1Top = geometry.cy - geometry.r1 * Math.cos(angle);
+                const x2Top = geometry.cx2 + geometry.r2 * Math.sin(angle);
+                const y2Top = geometry.cy - geometry.r2 * Math.cos(angle);
+                const x1Bot = geometry.cx1 - geometry.r1 * Math.sin(angle);
+                const y1Bot = geometry.cy + geometry.r1 * Math.cos(angle);
+                const x2Bot = geometry.cx2 - geometry.r2 * Math.sin(angle);
+                const y2Bot = geometry.cy + geometry.r2 * Math.cos(angle);
+                svg.innerHTML = `
+                    <g>
+                        <line x1="${geometry.cx1}" y1="${geometry.cy}" x2="${geometry.cx2}" y2="${geometry.cy}" stroke="#27272a" stroke-width="1.5" stroke-dasharray="3"/>
+                        <path d="M ${x1Top} ${y1Top} L ${x2Top} ${y2Top} A ${geometry.r2} ${geometry.r2} 0 0 1 ${x2Bot} ${y2Bot} L ${x1Bot} ${y1Bot} A ${geometry.r1} ${geometry.r1} 0 0 1 ${x1Top} ${y1Top}" fill="rgba(126, 12, 43, 0.1)" stroke="#7e0c2b" stroke-width="2" />
+                        <circle cx="${geometry.cx1}" cy="${geometry.cy}" r="${geometry.r1}" fill="#000000" stroke="#7e0c2b" stroke-width="2"/>
+                        <circle cx="${geometry.cx1}" cy="${geometry.cy}" r="3" fill="#7e0c2b"/>
+                        <text x="${geometry.cx1}" y="${geometry.cy - geometry.r1 - 5}" text-anchor="middle" fill="#a1a1aa" font-size="9" font-weight="bold">${N1}T</text>
+                        <circle cx="${geometry.cx2}" cy="${geometry.cy}" r="${geometry.r2}" fill="#000000" stroke="#7e0c2b" stroke-width="2"/>
+                        <circle cx="${geometry.cx2}" cy="${geometry.cy}" r="3" fill="#7e0c2b"/>
+                        <text x="${geometry.cx2}" y="${geometry.cy - geometry.r2 - 5}" text-anchor="middle" fill="#a1a1aa" font-size="9" font-weight="bold">${N2}T</text>
+                    </g>`;
+            };
+
+            if (svg._diagramFrame) cancelAnimationFrame(svg._diagramFrame);
+            const start = svg._currentGeometry;
+            if (!start || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                draw(target);
+                svg._currentGeometry = target;
+                svg._diagramFrame = 0;
+                return;
             }
-
-            const r1Svg = r1 * scale;
-            const r2Svg = r2 * scale;
-            const halfC = scaledC / 2;
-
-            const cx1 = 250 - halfC;
-            const cx2 = 250 + halfC;
-            const cy = 70;
-
-            const diffR = r2Svg - r1Svg;
-            const ratio = diffR / scaledC;
-            let angle = 0;
-            if (Math.abs(ratio) <= 1) {
-                angle = Math.asin(ratio);
-            }
-
-            const x1Top = cx1 + r1Svg * Math.sin(angle);
-            const y1Top = cy - r1Svg * Math.cos(angle);
-            const x2Top = cx2 + r2Svg * Math.sin(angle);
-            const y2Top = cy - r2Svg * Math.cos(angle);
-
-            const x1Bot = cx1 - r1Svg * Math.sin(angle);
-            const y1Bot = cy + r1Svg * Math.cos(angle);
-            const x2Bot = cx2 - r2Svg * Math.sin(angle);
-            const y2Bot = cy + r2Svg * Math.cos(angle);
-
-            svg.innerHTML = `
-                <g>
-                    <line x1="${cx1}" y1="${cy}" x2="${cx2}" y2="${cy}" stroke="#27272a" stroke-width="1.5" stroke-dasharray="3"/>
-
-                    <path d="
-                        M ${x1Top} ${y1Top}
-                        L ${x2Top} ${y2Top}
-                        A ${r2Svg} ${r2Svg} 0 0 1 ${x2Bot} ${y2Bot}
-                        L ${x1Bot} ${y1Bot}
-                        A ${r1Svg} ${r1Svg} 0 0 1 ${x1Top} ${y1Top}
-                    " fill="rgba(126, 12, 43, 0.1)" stroke="#7e0c2b" stroke-width="2" />
-
-                    <circle cx="${cx1}" cy="${cy}" r="${Math.max(8, r1Svg)}" fill="#000000" stroke="#7e0c2b" stroke-width="2"/>
-                    <circle cx="${cx1}" cy="${cy}" r="3" fill="#7e0c2b"/>
-                    <text x="${cx1}" y="${cy - Math.max(10, r1Svg) - 5}" text-anchor="middle" fill="#a1a1aa" font-size="9" font-weight="bold">${N1}T</text>
-
-                    <circle cx="${cx2}" cy="${cy}" r="${Math.max(8, r2Svg)}" fill="#000000" stroke="#7e0c2b" stroke-width="2"/>
-                    <circle cx="${cx2}" cy="${cy}" r="3" fill="#7e0c2b"/>
-                    <text x="${cx2}" y="${cy - Math.max(10, r2Svg) - 5}" text-anchor="middle" fill="#a1a1aa" font-size="9" font-weight="bold">${N2}T</text>
-                </g>
-            `;
+            const startedAt = performance.now();
+            const duration = 360;
+            const frame = now => {
+                const progress = Math.min(1, (now - startedAt) / duration);
+                const eased = progress * progress * (3 - 2 * progress);
+                const current = {
+                    cx1: start.cx1 + (target.cx1 - start.cx1) * eased,
+                    cx2: start.cx2 + (target.cx2 - start.cx2) * eased,
+                    cy: 70,
+                    r1: start.r1 + (target.r1 - start.r1) * eased,
+                    r2: start.r2 + (target.r2 - start.r2) * eased
+                };
+                draw(current);
+                svg._currentGeometry = current;
+                if (progress < 1) svg._diagramFrame = requestAnimationFrame(frame);
+                else svg._diagramFrame = 0;
+            };
+            svg._diagramFrame = requestAnimationFrame(frame);
         }
 
         function calculateSpacers() {
@@ -669,8 +816,12 @@
 
             if (isNaN(val) || val <= 0) {
                 clearTimeout(historySaveTimer);
-                container.classList.add('hidden');
-                emptyState.classList.remove('hidden');
+                const emptyWasHidden = emptyState.classList.contains('hidden');
+                animateHeightChange(document.getElementById('sectionSpacers'), () => {
+                    container.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                });
+                if (emptyWasHidden) animateIn(emptyState);
                 return;
             }
 
@@ -687,7 +838,7 @@
                     remaining -= stackVal;
                     const dispStack = unit === 'in' ? (stackVal / 25.4).toFixed(3) + ' in' : stackVal.toFixed(2) + ' mm';
                     html += `
-                        <div class="flex items-center justify-between bg-black px-3 py-2 rounded border border-neutral-800 text-xs">
+                        <div class="spacer-row flex items-center justify-between bg-black px-3 py-2 rounded border border-neutral-800 text-xs">
                             <div class="flex items-center gap-2">
                                 <span class="w-1.5 h-1.5 rounded-full bg-[#7e0c2b] inline-block"></span>
                                 <span class="font-medium text-white">${count}x <span class="text-neutral-300">${spacer.name}</span></span>
@@ -698,15 +849,18 @@
                 }
             });
 
-            list.innerHTML = html;
-            document.getElementById('totalAchieved').innerText = (unit === 'in' ? (achieved / 25.4).toFixed(3) + ' in' : achieved.toFixed(2) + ' mm');
-            document.getElementById('remainder').innerText = (unit === 'in' ? (remaining / 25.4).toFixed(3) + ' in' : remaining.toFixed(2) + ' mm');
-            document.getElementById('totalAchieved').classList.add('copy-value');
-            document.getElementById('remainder').classList.add('copy-value');
-            initializeCopyControls();
-
-            container.classList.remove('hidden');
-            emptyState.classList.add('hidden');
+            const wasHidden = container.classList.contains('hidden');
+            animateHeightChange(document.getElementById('sectionSpacers'), () => {
+                list.innerHTML = html;
+                document.getElementById('totalAchieved').innerText = (unit === 'in' ? (achieved / 25.4).toFixed(3) + ' in' : achieved.toFixed(2) + ' mm');
+                document.getElementById('remainder').innerText = (unit === 'in' ? (remaining / 25.4).toFixed(3) + ' in' : remaining.toFixed(2) + ' mm');
+                document.getElementById('totalAchieved').classList.add('copy-value');
+                document.getElementById('remainder').classList.add('copy-value');
+                container.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+                initializeCopyControls();
+            });
+            if (wasHidden || restoringCalculation) animateIn(container, 'result-enter');
             if (!restoringCalculation) queueRecentCalculation({
                 type: 'spacers', unit,
                 target: document.getElementById('targetSpacerInput').value
@@ -812,7 +966,7 @@
                 document.getElementById('inputExtraCenter').value = snapshot.extraCenter;
                 document.getElementById('inputP1').value = snapshot.pulley1;
                 document.getElementById('inputP2').value = snapshot.pulley2;
-                recalculate();
+                recalculate({ animate: true });
             }
             restoringCalculation = false;
         }
