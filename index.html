@@ -38,6 +38,31 @@
         .tab-btn {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .copy-control {
+            position: absolute;
+            z-index: 1;
+            top: 50%;
+            right: .35rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            color: #a1a1aa;
+            border: 0;
+            border-radius: .35rem;
+            background: transparent;
+            transform: translateY(-50%);
+            transition: color .18s ease, background-color .18s ease, transform .18s ease;
+        }
+        .copy-control:hover { color: #fff; background: rgba(126, 12, 43, .18); }
+        .copy-control:focus-visible { outline: 2px solid #7e0c2b; outline-offset: 2px; }
+        .copy-control.is-copied { color: #34d399; background: rgba(16, 185, 129, .08); }
+        .copy-input-wrap { position: relative; width: 100%; }
+        .copy-input-wrap input { width: 100%; padding-right: 2.9rem; }
+        .copy-value-wrap { position: relative; display: inline-block; max-width: 100%; padding-right: 1.8rem; vertical-align: middle; }
+        .copy-value-wrap .copy-control { right: 0; width: 1.65rem; height: 1.65rem; }
+        .copy-live-region { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
         /* Responsive page layout. The body selectors intentionally outrank Tailwind utilities. */
         *, *::before, *::after { box-sizing: border-box; }
@@ -310,6 +335,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            initializeCopyControls();
             const unitIn = document.getElementById('unitIn');
             const unitMm = document.getElementById('unitMm');
             if (unitIn && unitMm) {
@@ -331,6 +357,63 @@
             recalculate();
             restoringCalculation = false;
         });
+
+        function copyButton(valueProvider, compact = false) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'copy-control' + (compact ? ' copy-control-compact' : '');
+            button.setAttribute('aria-label', 'Copy value');
+            button.title = 'Copy value';
+            button.innerHTML = '<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3.5" width="11" height="14" rx="1.8"></rect><rect x="9" y="8" width="11" height="14" rx="1.8" fill="#000"></rect></svg>';
+            button.addEventListener('click', async () => {
+                const value = String(valueProvider()).trim();
+                if (!value) return;
+                try {
+                    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(value);
+                    else {
+                        const helper = document.createElement('textarea');
+                        helper.value = value;
+                        helper.style.position = 'fixed'; helper.style.opacity = '0';
+                        document.body.append(helper); helper.select();
+                        const copied = document.execCommand('copy'); helper.remove();
+                        if (!copied) throw new Error('Clipboard copy failed');
+                    }
+                    button.classList.add('is-copied');
+                    button.setAttribute('aria-label', 'Copied'); button.title = 'Copied';
+                    button.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>';
+                    const live = document.getElementById('copyLiveRegion');
+                    if (live) live.textContent = 'Value copied to clipboard';
+                    clearTimeout(button.copyResetTimer);
+                    button.copyResetTimer = setTimeout(() => {
+                        button.classList.remove('is-copied'); button.setAttribute('aria-label', 'Copy value'); button.title = 'Copy value';
+                        button.innerHTML = '<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3.5" width="11" height="14" rx="1.8"></rect><rect x="9" y="8" width="11" height="14" rx="1.8" fill="#000"></rect></svg>';
+                    }, 1400);
+                } catch (_) {
+                    button.setAttribute('aria-label', 'Copy failed'); button.title = 'Copy failed';
+                    const live = document.getElementById('copyLiveRegion');
+                    if (live) live.textContent = 'Could not copy value';
+                }
+            });
+            return button;
+        }
+
+        function initializeCopyControls() {
+            if (!document.getElementById('copyLiveRegion')) {
+                const live = document.createElement('span'); live.id = 'copyLiveRegion'; live.className = 'copy-live-region'; live.setAttribute('aria-live', 'polite'); document.body.append(live);
+            }
+            document.querySelectorAll('input[type="number"]:not([data-copy-ready])').forEach(input => {
+                input.dataset.copyReady = 'true';
+                const wrapper = document.createElement('div'); wrapper.className = 'copy-input-wrap';
+                input.parentNode.insertBefore(wrapper, input); wrapper.append(input);
+                wrapper.append(copyButton(() => input.value));
+            });
+            document.querySelectorAll('.copy-value:not([data-copy-ready])').forEach(value => {
+                value.dataset.copyReady = 'true';
+                const wrapper = document.createElement('span'); wrapper.className = 'copy-value-wrap';
+                value.parentNode.insertBefore(wrapper, value); wrapper.append(value);
+                wrapper.append(copyButton(() => value.textContent, true));
+            });
+        }
 
         function setPitch(key) {
             pitchPresetKey = key;
@@ -437,6 +520,7 @@
             renderBeltCard('smallerBeltCard', targetTeeth - 5, targetCenterMm, extraCenterMm, N1, N2, false, 'Smaller Belt');
             renderBeltCard('largerBeltCard', targetTeeth + 5, targetCenterMm, extraCenterMm, N1, N2, false, 'Larger Belt');
             renderSvgDiagram(targetCenterMm, extraCenterMm, N1, N2, targetTeeth);
+            initializeCopyControls();
             if (!restoringCalculation && targetCenterMm > 0 && N1 > 0 && N2 > 0) {
                 queueRecentCalculation({
                     type: 'belts', unit: currentUnit, pitch: pitchPresetKey,
@@ -472,13 +556,13 @@
                         </div>
                         <div class="text-right">
                             <span class="text-[10px] text-neutral-400 block">Actual C2C</span>
-                            <span class="text-sm font-bold mono-num text-[#7e0c2b]">${dispCenter} ${currentUnit}</span>
+                            <span class="text-sm font-bold mono-num text-[#7e0c2b] copy-value">${dispCenter} ${currentUnit}</span>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2 text-center text-xs pt-1">
                         <div class="bg-neutral-950 p-2 rounded border border-neutral-800">
                             <span class="block text-[9px] text-neutral-400 uppercase">Target Offset</span>
-                            <span class="mono-num font-semibold ${Math.abs(diffMm) < 0.5 ? 'text-emerald-400' : 'text-amber-400'}">${diffMm >= 0 ? '+' : ''}${dispDiff} ${currentUnit}</span>
+                            <span class="mono-num font-semibold copy-value ${Math.abs(diffMm) < 0.5 ? 'text-emerald-400' : 'text-amber-400'}">${diffMm >= 0 ? '+' : ''}${dispDiff} ${currentUnit}</span>
                         </div>
                         <div class="bg-neutral-950 p-2 rounded border border-neutral-800">
                             <span class="block text-[9px] text-neutral-400 uppercase">Pitch Preset</span>
@@ -490,11 +574,11 @@
                 container.innerHTML = `
                     <div class="flex justify-between items-center text-xs">
                         <span class="font-semibold text-neutral-300">${titleOverride}</span>
-                        <span class="font-bold mono-num text-[#7e0c2b]">${teeth}T (${dispLen} ${currentUnit})</span>
+                        <span class="font-bold mono-num text-[#7e0c2b] copy-value">${teeth}T (${dispLen} ${currentUnit})</span>
                     </div>
                     <div class="flex justify-between items-center text-xs mono-num pt-1">
-                        <span class="text-neutral-400">C2C: <strong class="text-white">${dispCenter} ${currentUnit}</strong></span>
-                        <span class="${diffMm >= 0 ? 'text-emerald-400' : 'text-amber-400'}">${diffMm >= 0 ? '+' : ''}${dispDiff} ${currentUnit}</span>
+                        <span class="text-neutral-400">C2C: <strong class="text-white copy-value">${dispCenter} ${currentUnit}</strong></span>
+                        <span class="copy-value ${diffMm >= 0 ? 'text-emerald-400' : 'text-amber-400'}">${diffMm >= 0 ? '+' : ''}${dispDiff} ${currentUnit}</span>
                     </div>
                 `;
             }
@@ -607,7 +691,7 @@
                                 <span class="w-1.5 h-1.5 rounded-full bg-[#7e0c2b] inline-block"></span>
                                 <span class="font-medium text-white">${count}x <span class="text-neutral-300">${spacer.name}</span></span>
                             </div>
-                            <span class="text-neutral-400 mono-num">${dispStack}</span>
+                            <span class="text-neutral-400 mono-num copy-value">${dispStack}</span>
                         </div>
                     `;
                 }
@@ -616,6 +700,9 @@
             list.innerHTML = html;
             document.getElementById('totalAchieved').innerText = (unit === 'in' ? (achieved / 25.4).toFixed(3) + ' in' : achieved.toFixed(2) + ' mm');
             document.getElementById('remainder').innerText = (unit === 'in' ? (remaining / 25.4).toFixed(3) + ' in' : remaining.toFixed(2) + ' mm');
+            document.getElementById('totalAchieved').classList.add('copy-value');
+            document.getElementById('remainder').classList.add('copy-value');
+            initializeCopyControls();
 
             container.classList.remove('hidden');
             emptyState.classList.add('hidden');
