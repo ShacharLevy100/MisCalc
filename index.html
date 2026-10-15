@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
-    <meta name="description" content="Spacer and Timing Belt Calculator">
+    <meta name="description" content="Spacer, Timing Belt, and Gear Train Calculator">
     <link rel="manifest" href="./manifest.json">
     <title>MisCalc</title>
 
@@ -113,6 +113,9 @@
         .copy-control:hover { color: #fff; background: rgba(126, 12, 43, .18); }
         .copy-control:focus-visible { outline: 2px solid #7e0c2b; outline-offset: 2px; }
         .copy-control.is-copied { color: #34d399; background: rgba(16, 185, 129, .08); }
+        #gearModuleInput { padding-right: 4.5rem; }
+        .gear-module-unit { right: 3rem !important; }
+        .gear-rpm-unit { right: 3rem !important; }
         .copy-input-wrap { position: relative; width: 100%; }
         .copy-input-wrap input { width: 100%; padding-right: 2.9rem; }
         .copy-value-wrap { position: relative; display: inline-block; max-width: 100%; padding-right: 1.8rem; vertical-align: middle; }
@@ -186,6 +189,54 @@
             body.app-page #sectionBelts:not(.hidden) > :nth-child(3) > div:nth-child(2) {
                 height: clamp(13rem, 22vw, 20rem);
             }
+            body.app-page #sectionGears:not(.hidden) {
+                display: grid;
+                grid-template-columns: minmax(17rem, .72fr) minmax(0, 1.28fr);
+                grid-template-areas:
+                    "inputs diagram"
+                    "results results";
+                align-items: start;
+                gap: 1.25rem 1.5rem;
+            }
+            body.app-page #sectionGears:not(.hidden) > * { min-width: 0; margin-top: 0; }
+            body.app-page #gearInputs { grid-area: inputs; }
+            body.app-page #gearDiagramPanel { grid-area: diagram; }
+            body.app-page #gearResults { grid-area: results; }
+            body.app-page #gearSvgWrap { height: clamp(16rem, 24vw, 19rem); }
+        }
+        #gearSvg .gear-tooth-body { fill: #030303; stroke: #7e0c2b; stroke-width: 2; stroke-linejoin: round; }
+        #gearSvg .gear-pitch-circle { fill: none; stroke: #52525b; stroke-width: 1; stroke-dasharray: 3 4; opacity: .65; }
+        #gearSvg .gear-spoke { stroke: #27272a; stroke-width: 1.8; stroke-linecap: round; }
+        #gearSvg .gear-hub { fill: #000; stroke: #7e0c2b; stroke-width: 1.5; }
+        #gearSvg .gear-spin-arrow { fill: none; stroke: #7e0c2b; stroke-width: 1.8; stroke-linecap: round; }
+        #gearSvg .gear-dimension { stroke: #71717a; stroke-width: 1.1; }
+        #gearSvg .gear-centerline { stroke: #3f3f46; stroke-width: 1; stroke-dasharray: 3 4; }
+        #gearSvg .gear-index { fill: #d4d4d8; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+        #gearSvg .gear-tooth-label { fill: #e4e4e7; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+        #gearSvg .gear-measure-label { fill: #f4f4f5; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+        #gearSvg .gear-measure-label-bg, #gearSvg .gear-tooth-label-bg { fill: #09090b; stroke: #3f3f46; stroke-width: 1; }
+        #gearSvg [data-gear-measure], #gearSvg [data-gear-tooth-label] { pointer-events: none; }
+        #gearSvg .gear-terminal-input .gear-tooth-body { stroke: #b8244e; stroke-width: 2.5; }
+        #gearSvg .gear-terminal-output .gear-tooth-body { stroke: #692039; stroke-width: 2.5; }
+        #gearList [data-gear-row] { position: relative; transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease, transform 180ms cubic-bezier(.2,.8,.2,1); }
+        #gearList .gear-row-dragging { z-index: 5; border-color: #a8b6ff; background: #27272a; box-shadow: 0 0 0 1px rgba(168,182,255,.6), 0 18px 36px rgba(0,0,0,.48); transition: none; pointer-events: none; }
+        #gearList .gear-row-drop-target { border-color: #a8b6ff; background: rgba(168,182,255,.09); box-shadow: inset 0 0 0 1px rgba(168,182,255,.28); }
+        #gearList [data-gear-drag-handle] { cursor: grab; touch-action: none; }
+        #gearList [data-gear-drag-handle]:active { cursor: grabbing; }
+        #gearVisualLegend { border-top: 1px solid #27272a; }
+        #gearSvg text { font-family: 'JetBrains Mono', monospace; }
+        #gearInputs input[aria-invalid="true"] { border-color: #7f1d1d; }
+        #gearSvg [data-gear-node] { cursor: grab; touch-action: none; transition: filter 180ms ease; }
+        #gearSvg [data-gear-node].gear-selected { cursor: grabbing; filter: drop-shadow(0 0 7px rgba(184, 36, 78, .75)); }
+        #gearSvg [data-gear-node].gear-hold-wait .gear-tooth-body { stroke: #d64f71; animation: gear-hold-pulse 420ms ease-in-out infinite alternate; }
+        #gearSvg [data-gear-node].gear-selected .gear-tooth-body { fill: #35141f; stroke: #e05a7b; stroke-width: 2.5; }
+        @keyframes gear-hold-pulse {
+            from { stroke-width: 2; filter: drop-shadow(0 0 3px rgba(184, 36, 78, .45)); }
+            to { stroke-width: 3.5; filter: drop-shadow(0 0 9px rgba(214, 79, 113, .85)); }
+        }
+        @media (prefers-reduced-motion: reduce) { #gearSvg [data-gear-node] { transition: none; } #gearSvg [data-gear-node].gear-hold-wait .gear-tooth-body { animation: none; } }
+        @media (prefers-reduced-motion: reduce) {
+            #gearSvg .gear-tooth-body, #gearSvg .gear-spin-arrow { transition: none !important; }
         }
     </style>
 </head>
@@ -202,9 +253,10 @@
                 </h1>
             </div>
             
-            <div class="flex bg-black p-1 rounded-lg border border-neutral-800 w-full sm:w-auto">
-                <button onclick="switchTab('spacers')" id="tabSpacers" class="tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md bg-[#7e0c2b] text-white shadow-md">Spacers</button>
-                <button onclick="switchTab('belts')" id="tabBelts" class="tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md text-neutral-400 hover:text-white">Timing Belts</button>
+            <div class="flex bg-black p-1 rounded-lg border border-neutral-800 w-full sm:w-auto" role="group" aria-label="Calculator modules">
+                <button type="button" onclick="switchTab('spacers')" id="tabSpacers" aria-pressed="true" class="tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md bg-[#7e0c2b] text-white shadow-md">Spacers</button>
+                <button type="button" onclick="switchTab('belts')" id="tabBelts" aria-pressed="false" class="tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md text-neutral-400 hover:text-white">Timing Belts</button>
+                <button type="button" onclick="switchTab('gears')" id="tabGears" aria-pressed="false" class="tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md text-neutral-400 hover:text-white">Gear Train</button>
             </div>
         </div>
 
@@ -356,6 +408,88 @@
 
         </div>
 
+        <!-- ================= GEAR TRAIN TAB ================= -->
+        <div id="sectionGears" class="space-y-4 hidden">
+            <section id="gearInputs" class="rounded-lg border border-neutral-800 bg-black p-3.5 space-y-3" aria-labelledby="gearInputsTitle">
+                <div>
+                    <h2 id="gearInputsTitle" class="text-xs font-semibold uppercase tracking-wider text-neutral-300">Gear Parameters</h2>
+                    <p class="mt-1 text-[10px] text-neutral-500">External spur gears · metric module</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="gearModuleInput" class="block text-xs text-neutral-300 font-medium">Module</label>
+                        <div class="relative">
+                            <input type="number" id="gearModuleInput" min="0.001" step="0.1" value="3" inputmode="decimal" oninput="calculateGearTrain()" class="w-full rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5 pr-11 text-base text-white font-medium mono-num focus:outline-none focus:border-[#7e0c2b]" aria-describedby="gearModuleHint">
+                            <span class="gear-module-unit pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-500">mm</span>
+                        </div>
+                        <p id="gearModuleHint" class="text-[10px] text-neutral-500">Shared tooth size</p>
+                    </div>
+                    <div class="space-y-1">
+                        <label for="gearRpmInput" class="block text-xs text-neutral-300 font-medium">Input Speed · Gear A</label>
+                        <div class="relative">
+                            <input type="number" id="gearRpmInput" min="0" step="1" value="1000" inputmode="decimal" oninput="calculateGearTrain()" class="w-full rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2.5 pr-14 text-base text-white font-medium mono-num focus:outline-none focus:border-[#7e0c2b]" aria-describedby="gearRpmHint">
+                            <span class="gear-rpm-unit pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-500">rpm</span>
+                        </div>
+                        <p id="gearRpmHint" class="text-[10px] text-neutral-500">Non-negative input speed</p>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <h3 class="text-xs font-semibold text-neutral-300">Gear Chain</h3>
+                        <span id="gearCountLabel" class="text-[10px] text-neutral-500">2 gears · drag rows to reorder</span>
+                    </div>
+                    <div id="gearList" class="space-y-2"></div>
+                    <button type="button" id="addGearButton" onclick="addGear()" class="w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-xs font-semibold text-neutral-200 hover:border-[#7e0c2b] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7e0c2b]">+ Add gear</button>
+                    <p id="gearTeethHint" class="text-[10px] text-neutral-500">Whole tooth counts from 1 to 500</p>
+                    <p class="text-[10px] text-neutral-500">Add up to 8 gears. Each adjacent pair meshes externally.</p>
+                </div>
+                <p id="gearValidation" class="hidden rounded-md border border-red-900/70 bg-red-950/30 px-3 py-2 text-xs text-red-300" role="alert"></p>
+            </section>
+
+            <section id="gearDiagramPanel" class="rounded-lg border border-neutral-800 bg-black p-3 space-y-2" aria-labelledby="gearDiagramTitle">
+                <div class="flex items-center justify-between gap-2 px-1">
+                    <div>
+                        <h2 id="gearDiagramTitle" class="text-sm font-semibold text-neutral-200">Layout Preview</h2>
+                        <p class="mt-0.5 text-xs leading-relaxed text-neutral-500">Drag a gear to snap beside its nearest neighbor · hold to grab on touch screens</p>
+                    </div>
+                    <span class="shrink-0 rounded border border-neutral-800 bg-neutral-950 px-2 py-1 text-xs font-medium text-neutral-400">External mesh</span>
+                </div>
+                <div id="gearSvgWrap" class="h-[18rem] w-full rounded-md border border-neutral-900 bg-neutral-950 flex items-center justify-center overflow-hidden">
+                    <svg id="gearSvg" class="h-full w-full" viewBox="0 0 900 500" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Gear train schematic"></svg>
+                </div>
+                <div id="gearVisualLegend" class="space-y-2 px-1 pt-2" aria-live="polite"></div>
+                <p class="px-1 text-xs leading-relaxed text-neutral-500">Release to smoothly re-mesh at the exact center distance. Tooth profile is schematic.</p>
+            </section>
+
+            <section id="gearResults" class="space-y-2" aria-labelledby="gearResultsTitle">
+                <h2 id="gearResultsTitle" class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Calculated Results</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                    <div class="col-span-2 sm:col-span-1 rounded-lg border-2 border-[#7e0c2b] bg-black p-3 text-center">
+                    <span class="block text-xs uppercase tracking-wider text-neutral-500">Overall Ratio · Output:Input</span>
+                        <strong id="gearRatioOutput" class="mt-1 block text-xl font-bold text-white mono-num">2:1</strong>
+                    </div>
+                    <div class="rounded-lg border border-neutral-800 bg-black p-3 text-center">
+                        <span class="block text-xs uppercase tracking-wider text-neutral-500">Gear Count</span>
+                        <strong id="gearCountOutput" class="mt-1 block text-sm font-bold text-white mono-num">2</strong>
+                    </div>
+                    <div class="rounded-lg border border-neutral-800 bg-black p-3 text-center">
+                        <span class="block text-xs uppercase tracking-wider text-neutral-500">Pair Center Distances</span>
+                        <strong id="gearCenterOutput" class="mt-1 flex flex-wrap justify-center gap-x-2 gap-y-1 text-xs font-bold text-[#b8244e] mono-num"><span>A–B 90 mm</span></strong>
+                    </div>
+                    <div class="rounded-lg border border-neutral-800 bg-black p-3 text-center">
+                        <span id="gearOutputLabel" class="block text-xs uppercase tracking-wider text-neutral-500">Output Speed · Gear B</span>
+                        <strong id="gearOutputRpm" class="mt-1 block text-sm font-bold text-white mono-num">500 rpm</strong>
+                    </div>
+                    <div class="col-span-2 sm:col-span-3 lg:col-span-1 rounded-lg border border-neutral-800 bg-black p-3 text-center">
+                        <span class="block text-xs uppercase tracking-wider text-neutral-500">Ideal Torque Multiplier</span>
+                        <strong id="gearTorqueOutput" class="mt-1 block text-sm font-bold text-white mono-num">2×</strong>
+                    </div>
+                </div>
+                <div id="gearDetails" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2" aria-label="Gear sizes and speeds"></div>
+                <p class="text-xs leading-relaxed text-neutral-500">Ideal ratio assumes no friction or losses. Rotation direction alternates at every gear mesh.</p>
+            </section>
+        </div>
+
     </div>
 
     <script>
@@ -367,6 +501,10 @@
         let recentCalculations = [];
         let historySaveTimer = null;
         let restoringCalculation = false;
+        const gearAnimationState = { angles: [], phases: [], rpms: [], lastTime: null, frame: 0 };
+        const gearLayout = { positions: [], linkAngles: [], animationFrame: 0, redrawPending: false };
+        const gearPointerState = { pending: null, drag: null };
+        const gearListDragState = { index: null, targetIndex: null, pointerId: null, timer: null, touchActive: false, row: null, startX: 0, startY: 0, startTop: 0, startLeft: 0 };
 
         const PITCH_PRESETS = {
             'HTD5': { name: 'HTD 5mm', pitchMm: 5.0 },
@@ -441,6 +579,29 @@
             highlight.style.transform = `translateX(${left}px)`;
         }
 
+        function refreshSegmentedControls() {
+            const pitchIndex = ['HTD5', 'GT2_3', 'GT2_2', 'RT25'].indexOf(pitchPresetKey);
+            updateSegmentedControl('pitchSegments', pitchIndex < 0 ? 0 : pitchIndex);
+            updateSegmentedControl('unitSegments', currentUnit === 'in' ? 0 : 1);
+            const spacerUnit = document.getElementById('spacerUnitSelect')?.value;
+            updateSegmentedControl('spacerUnitSegments', spacerUnit === 'in' ? 0 : 1);
+        }
+
+        let segmentedControlObserver;
+        function observeSegmentedControlSizes() {
+            if (!('ResizeObserver' in window)) return;
+            segmentedControlObserver?.disconnect();
+            segmentedControlObserver = new ResizeObserver(entries => {
+                entries.forEach(({ target }) => {
+                    const control = target.closest('.segmented-control');
+                    if (!control) return;
+                    const selectedIndex = Number(control.style.getPropertyValue('--selected-index')) || 0;
+                    updateSegmentedControl(control.id, selectedIndex);
+                });
+            });
+            document.querySelectorAll('.segmented-control, .segmented-control [data-segment-index]').forEach(element => segmentedControlObserver.observe(element));
+        }
+
         window.addEventListener('resize', () => {
             const pitchIndex = ['HTD5', 'GT2_3', 'GT2_2', 'RT25'].indexOf(pitchPresetKey);
             updateSegmentedControl('pitchSegments', pitchIndex < 0 ? 0 : pitchIndex);
@@ -449,7 +610,8 @@
         });
 
         function switchTab(tab) {
-            const isSpacers = tab === 'spacers';
+            const tabs = ['spacers', 'belts', 'gears'];
+            if (!tabs.includes(tab)) return;
             const shell = document.querySelector('body.app-page > div');
             if (shell._heightAnimation) {
                 if (shell._heightAnimation.commitStyles) shell._heightAnimation.commitStyles();
@@ -459,22 +621,27 @@
             const oldHeight = shell.getBoundingClientRect().height;
             shell.style.removeProperty('height');
             shell.style.removeProperty('overflow');
-            const wasSpacers = !document.getElementById('sectionSpacers').classList.contains('hidden');
-            if (wasSpacers === isSpacers) return;
-            document.getElementById('sectionSpacers').classList.toggle('hidden', !isSpacers);
-            document.getElementById('sectionBelts').classList.toggle('hidden', isSpacers);
-            const activeSection = document.getElementById(isSpacers ? 'sectionSpacers' : 'sectionBelts');
+            const currentTab = tabs.find(name => !document.getElementById(`section${name[0].toUpperCase()}${name.slice(1)}`).classList.contains('hidden'));
+            if (currentTab === tab) return;
+            tabs.forEach(name => {
+                document.getElementById(`section${name[0].toUpperCase()}${name.slice(1)}`).classList.toggle('hidden', name !== tab);
+                const button = document.getElementById(`tab${name[0].toUpperCase()}${name.slice(1)}`);
+                const isActive = name === tab;
+                button.setAttribute('aria-pressed', String(isActive));
+                button.className = `tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition ${isActive ? 'bg-[#7e0c2b] text-white shadow-md' : 'text-neutral-400 hover:text-white'}`;
+            });
+            const activeSection = document.getElementById(`section${tab[0].toUpperCase()}${tab.slice(1)}`);
             const newHeight = shell.getBoundingClientRect().height;
             const isExpanding = newHeight > oldHeight;
-            
-            document.getElementById('tabSpacers').className = `tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition ${isSpacers ? 'bg-[#7e0c2b] text-white shadow-md' : 'text-neutral-400 hover:text-white'}`;
-            document.getElementById('tabBelts').className = `tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition ${!isSpacers ? 'bg-[#7e0c2b] text-white shadow-md' : 'text-neutral-400 hover:text-white'}`;
+            if (tab === 'gears') startGearAnimation();
+            else stopGearAnimation();
             activeSection.getAnimations().forEach(animation => animation.cancel());
             animateIn(activeSection, 'panel-enter', isExpanding ? 440 : 280);
             requestAnimationFrame(() => {
                 updateSegmentedControl('pitchSegments', ['HTD5', 'GT2_3', 'GT2_2', 'RT25'].indexOf(pitchPresetKey));
                 updateSegmentedControl('unitSegments', currentUnit === 'in' ? 0 : 1);
                 updateSegmentedControl('spacerUnitSegments', document.getElementById('spacerUnitSelect').value === 'in' ? 0 : 1);
+                if (tab === 'gears') redrawGearDiagramForSize();
             });
             if (oldHeight !== newHeight && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
                 shell.style.height = `${oldHeight}px`;
@@ -493,21 +660,943 @@
             }
         }
 
+        function formatGearNumber(value, decimals = 3) {
+            if (!Number.isFinite(value)) return '—';
+            return Number(value.toFixed(decimals)).toString();
+        }
+
+        function greatestCommonDivisor(a, b) {
+            while (b) [a, b] = [b, a % b];
+            return a || 1;
+        }
+
+        function gearLetter(index) {
+            return String.fromCharCode(65 + index);
+        }
+
+        function currentGearInputs() {
+            return [...document.querySelectorAll('.gear-teeth-input')];
+        }
+
+        function renderGearInputs(teethCounts) {
+            const list = document.getElementById('gearList');
+            list.replaceChildren();
+            teethCounts.forEach((teeth, index) => {
+                const letter = gearLetter(index);
+                const role = index === 0 ? 'INPUT' : index === teethCounts.length - 1 ? 'OUTPUT' : 'IDLER';
+                const card = document.createElement('div');
+                card.className = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-950 px-3 py-2';
+                card.dataset.gearRow = String(index);
+                card.draggable = false;
+                const field = document.createElement('div');
+                field.className = 'min-w-0';
+                const label = document.createElement('label');
+                label.htmlFor = `gearTeeth${index}Input`;
+                label.className = 'mb-1 block text-xs font-medium text-neutral-300';
+                label.textContent = `Gear ${letter} · ${role} · teeth`;
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.id = `gearTeeth${index}Input`;
+                input.className = 'gear-teeth-input w-full rounded-md border border-neutral-800 bg-black px-3 py-2 text-base font-medium text-white mono-num focus:border-[#7e0c2b] focus:outline-none';
+                input.min = '1';
+                input.max = '500';
+                input.step = '1';
+                input.inputMode = 'numeric';
+                input.value = teeth;
+                input.dataset.gearIndex = String(index);
+                input.setAttribute('aria-describedby', 'gearTeethHint');
+                input.addEventListener('input', calculateGearTrain);
+                field.append(label, input);
+                const actions = document.createElement('div');
+                actions.className = 'flex shrink-0 items-center gap-1';
+                const dragHandle = document.createElement('button');
+                dragHandle.type = 'button';
+                dragHandle.draggable = false;
+                dragHandle.dataset.gearDragHandle = '';
+                dragHandle.setAttribute('aria-label', `Drag to reorder Gear ${letter}`);
+                dragHandle.title = `Drag to reorder Gear ${letter}`;
+                dragHandle.className = 'rounded-md p-2 text-neutral-400 hover:bg-neutral-800 hover:text-[#a8b6ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a8b6ff]';
+                dragHandle.innerHTML = '<svg viewBox="0 0 20 20" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 8 5-4 5 4M5 12l5 4 5-4"/></svg>';
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'button';
+                deleteButton.disabled = teethCounts.length <= 2;
+                deleteButton.dataset.gearDelete = '';
+                deleteButton.setAttribute('aria-label', `Delete Gear ${letter}`);
+                deleteButton.title = teethCounts.length <= 2 ? 'A train needs at least two gears' : `Delete Gear ${letter}`;
+                deleteButton.className = 'rounded px-2 py-1 text-lg leading-none text-neutral-500 hover:bg-red-950/40 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7e0c2b]';
+                deleteButton.textContent = '×';
+                deleteButton.addEventListener('click', () => removeGearAt(index));
+                actions.append(dragHandle, deleteButton);
+                card.append(field, actions);
+                list.append(card);
+            });
+            document.getElementById('gearCountLabel').textContent = `${teethCounts.length} gears · drag rows to reorder`;
+            document.getElementById('gearCountOutput').textContent = String(teethCounts.length);
+            document.getElementById('addGearButton').disabled = teethCounts.length >= 8;
+            document.getElementById('addGearButton').classList.toggle('opacity-40', teethCounts.length >= 8);
+        }
+
+        function updateGearLinkAngles(positions) {
+            gearLayout.linkAngles = positions.slice(0, -1).map((position, index) => {
+                const next = positions[index + 1];
+                return Math.atan2(next.y - position.y, next.x - position.x);
+            });
+        }
+
+        function commitGearOrder(order, orderedPositions, sourceTeeth = currentGearInputs().map(input => input.value)) {
+            const absoluteAngles = order.map(index => (gearAnimationState.phases[index] || 0) + (gearAnimationState.angles[index] || 0));
+            const orderedTeeth = order.map(index => sourceTeeth[index]);
+            gearLayout.positions = copyGearPositions(orderedPositions);
+            updateGearLinkAngles(orderedPositions);
+            renderGearInputs(orderedTeeth);
+            const phases = gearStartingPhases(orderedTeeth.map(Number));
+            calculateGearTrain({
+                layoutTransition: { from: orderedPositions },
+                anchorPosition: orderedPositions[0],
+                rotorAngles: order.map((_, index) => absoluteAngles[index] - phases[index]),
+                skipGearMorph: true
+            });
+        }
+
+        function reorderGearRows(fromIndex, toIndex) {
+            const inputs = currentGearInputs();
+            if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= inputs.length || toIndex >= inputs.length) return;
+            const positions = copyGearPositions();
+            const order = inputs.map((_, index) => index);
+            const [moved] = order.splice(fromIndex, 1);
+            order.splice(toIndex, 0, moved);
+            commitGearOrder(order, order.map(index => positions[index]), inputs.map(input => input.value));
+        }
+
+        function setupGearListInteractions() {
+            const list = document.getElementById('gearList');
+            if (!list || list.dataset.dragReady) return;
+            list.dataset.dragReady = 'true';
+            list.addEventListener('pointerdown', event => {
+                const row = event.target.closest?.('[data-gear-row]');
+                const handle = event.target.closest?.('[data-gear-drag-handle]');
+                if (!row || event.target.closest('input, [data-gear-delete]') || (event.target.closest('button') && !handle)) return;
+                if (event.pointerType === 'mouse' && event.button !== 0) return;
+                gearListDragState.pointerId = event.pointerId;
+                gearListDragState.index = Number(row.dataset.gearRow);
+                gearListDragState.targetIndex = gearListDragState.index;
+                gearListDragState.touchActive = false;
+                gearListDragState.row = row;
+                gearListDragState.startX = event.clientX;
+                gearListDragState.startY = event.clientY;
+                const rect = row.getBoundingClientRect();
+                gearListDragState.startTop = rect.top;
+                gearListDragState.startLeft = rect.left;
+                if (event.pointerType === 'mouse') {
+                    gearListDragState.touchActive = true;
+                    row.classList.add('gear-row-dragging');
+                    try { row.setPointerCapture(event.pointerId); } catch (_) {}
+                } else {
+                    gearListDragState.timer = setTimeout(() => {
+                        if (gearListDragState.pointerId !== event.pointerId) return;
+                        gearListDragState.touchActive = true;
+                        row.classList.add('gear-row-dragging');
+                        try { navigator.vibrate?.(8); } catch (_) {}
+                        try { row.setPointerCapture(event.pointerId); } catch (_) {}
+                    }, 320);
+                }
+            });
+            document.addEventListener('pointermove', event => {
+                if (gearListDragState.pointerId !== event.pointerId) return;
+                const deltaY = event.clientY - gearListDragState.startY;
+                if (!gearListDragState.touchActive) {
+                    if (Math.abs(deltaY) > 9 || Math.abs(event.clientX - gearListDragState.startX) > 14) clearGearListDragState();
+                    return;
+                }
+                if (event.cancelable) event.preventDefault();
+                const sourceRow = gearListDragState.row;
+                if (sourceRow) sourceRow.style.transform = `translate3d(0, ${deltaY}px, 0) scale(1.015)`;
+                const row = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('[data-gear-row]');
+                list.querySelectorAll('.gear-row-drop-target').forEach(target => target.classList.remove('gear-row-drop-target'));
+                if (row && row !== sourceRow) {
+                    gearListDragState.targetIndex = Number(row.dataset.gearRow);
+                    row.classList.add('gear-row-drop-target');
+                }
+            }, { passive: false });
+            document.addEventListener('pointerup', event => {
+                if (gearListDragState.pointerId !== event.pointerId) return;
+                if (gearListDragState.touchActive && gearListDragState.index !== null && gearListDragState.targetIndex !== null) {
+                    reorderGearRows(gearListDragState.index, gearListDragState.targetIndex);
+                }
+                clearGearListDragState();
+            });
+            document.addEventListener('pointercancel', event => {
+                if (gearListDragState.pointerId === event.pointerId) clearGearListDragState();
+            });
+        }
+
+        function clearGearListDragState() {
+            if (gearListDragState.timer) clearTimeout(gearListDragState.timer);
+            gearListDragState.index = null;
+            gearListDragState.targetIndex = null;
+            gearListDragState.pointerId = null;
+            gearListDragState.timer = null;
+            gearListDragState.touchActive = false;
+            gearListDragState.row = null;
+            gearListDragState.startX = 0;
+            gearListDragState.startY = null;
+            gearListDragState.startTop = 0;
+            gearListDragState.startLeft = 0;
+            document.querySelectorAll('#gearList .gear-row-dragging, #gearList .gear-row-drop-target').forEach(row => {
+                row.classList.remove('gear-row-dragging', 'gear-row-drop-target');
+                row.style.removeProperty('transform');
+            });
+        }
+
+        function addGear() {
+            const inputs = currentGearInputs();
+            if (inputs.length >= 8) return;
+            const teethCounts = inputs.map(input => input.value);
+            const before = copyGearPositions();
+            teethCounts.push('24');
+            const transitionFrom = [...before, { ...before[before.length - 1] }];
+            if (teethCounts.length >= 5 && gearLayout.linkAngles.every(angle => Math.abs(angle) < 0.001)) {
+                gearLayout.linkAngles = Array.from({ length: teethCounts.length - 1 }, (_, index) => index % 2 === 0 ? 70 : -70).map(degrees => degrees * Math.PI / 180);
+            }
+            renderGearInputs(teethCounts);
+            calculateGearTrain({ layoutTransition: { from: transitionFrom } });
+            document.getElementById(`gearTeeth${teethCounts.length - 1}Input`).focus();
+        }
+
+        function removeGearAt(removeIndex) {
+            const inputs = currentGearInputs();
+            if (inputs.length <= 2) return;
+            const positions = copyGearPositions();
+            const order = inputs.map((_, index) => index).filter(index => index !== removeIndex);
+            const before = order.map(index => positions[index]);
+            const teethCounts = order.map(index => inputs[index].value);
+            const absoluteAngles = order.map(index => (gearAnimationState.phases[index] || 0) + (gearAnimationState.angles[index] || 0));
+            gearLayout.positions = copyGearPositions(before);
+            updateGearLinkAngles(before);
+            renderGearInputs(teethCounts);
+            const phases = gearStartingPhases(teethCounts.map(Number));
+            calculateGearTrain({
+                layoutTransition: { from: before },
+                anchorPosition: before[0],
+                rotorAngles: absoluteAngles.map((angle, index) => angle - phases[index]),
+                skipGearMorph: true
+            });
+        }
+
+        function gearOutlinePath(teeth, rootRadius, tipRadius) {
+            const step = (Math.PI * 2) / teeth;
+            const flank = [
+                [-0.5, rootRadius], [-0.34, rootRadius], [-0.23, tipRadius],
+                [0.23, tipRadius], [0.34, rootRadius], [0.5, rootRadius]
+            ];
+            const points = [];
+            for (let tooth = 0; tooth < teeth; tooth++) {
+                for (const [fraction, radius] of flank) {
+                    const angle = (tooth + fraction) * step;
+                    points.push(`${(Math.cos(angle) * radius).toFixed(2)},${(Math.sin(angle) * radius).toFixed(2)}`);
+                }
+            }
+            return `M ${points.join(' L ')} Z`;
+        }
+
+        function gearRotorMarkup(index, teeth, moduleMm, scale, phaseDeg) {
+            const pitchRadius = teeth * moduleMm * scale / 2;
+            const rootRadius = Math.max(moduleMm * scale * 0.15, moduleMm * scale * (teeth / 2 - 1.25));
+            const tipRadius = moduleMm * scale * (teeth / 2 + 1);
+            const hubRadius = Math.max(4, Math.min(rootRadius * 0.22, tipRadius * 0.16));
+            const spokes = Array.from({ length: 6 }, (_, index) => {
+                const angle = (Math.PI * 2 * index) / 6;
+                const inner = hubRadius + 3;
+                const outer = Math.max(inner + 1, rootRadius * 0.62);
+                return `<line class="gear-spoke" x1="${(Math.cos(angle) * inner).toFixed(2)}" y1="${(Math.sin(angle) * inner).toFixed(2)}" x2="${(Math.cos(angle) * outer).toFixed(2)}" y2="${(Math.sin(angle) * outer).toFixed(2)}"/>`;
+            }).join('');
+            const arrowRadius = Math.max(hubRadius + 4, Math.min(rootRadius * 0.78, tipRadius * 0.66));
+            const clockwise = index % 2 === 0;
+            const startAngle = clockwise ? -140 : -40;
+            const endAngle = clockwise ? -40 : -140;
+            const sweep = clockwise ? 1 : 0;
+            const pointAt = angle => ({
+                x: (Math.cos(angle * Math.PI / 180) * arrowRadius).toFixed(2),
+                y: (Math.sin(angle * Math.PI / 180) * arrowRadius).toFixed(2)
+            });
+            const start = pointAt(startAngle);
+            const end = pointAt(endAngle);
+            return {
+                pitchRadius,
+                tipRadius,
+                markup: `
+                    <g data-gear-rotor="${index}" transform="rotate(${phaseDeg.toFixed(3)})">
+                        <path class="gear-tooth-body" d="${gearOutlinePath(teeth, rootRadius, tipRadius)}"/>
+                        ${spokes}
+                        <circle class="gear-pitch-circle" r="${pitchRadius.toFixed(2)}"/>
+                        <circle class="gear-hub" r="${hubRadius.toFixed(2)}"/>
+                        <path class="gear-spin-arrow" d="M ${start.x} ${start.y} A ${arrowRadius.toFixed(2)} ${arrowRadius.toFixed(2)} 0 0 ${sweep} ${end.x} ${end.y}" marker-end="url(#gearArrowHead)"/>
+                    </g>`
+            };
+        }
+
+        function gearStartingPhases(teethCounts) {
+            const phases = [0];
+            let rightSideHasTooth = true;
+            for (let index = 1; index < teethCounts.length; index++) {
+                const step = (Math.PI * 2) / teethCounts[index];
+                const phase = rightSideHasTooth ? Math.PI - step / 2 : Math.PI;
+                phases.push(phase * 180 / Math.PI);
+                const offset = ((phase % step) + step) % step;
+                rightSideHasTooth = Math.min(offset, step - offset) < Math.abs(offset - step / 2);
+            }
+            return phases;
+        }
+
+        function copyGearPositions(positions = gearLayout.positions) {
+            return positions.map(position => ({ x: position.x, y: position.y }));
+        }
+
+        function ensureGearLayout(teethCounts, moduleMm) {
+            if (!gearLayout.positions.length) gearLayout.positions.push({ x: 0, y: 0 });
+            while (gearLayout.positions.length > teethCounts.length) gearLayout.positions.pop();
+            while (gearLayout.linkAngles.length > teethCounts.length - 1) gearLayout.linkAngles.pop();
+            while (gearLayout.positions.length < teethCounts.length) {
+                const index = gearLayout.positions.length;
+                const previous = gearLayout.positions[index - 1];
+                const distance = ((teethCounts[index - 1] + teethCounts[index]) * moduleMm) / 2;
+                const angle = gearLayout.linkAngles[index - 1] || 0;
+                gearLayout.positions.push({ x: previous.x + distance * Math.cos(angle), y: previous.y + distance * Math.sin(angle) });
+                gearLayout.linkAngles[index - 1] = angle;
+            }
+        }
+
+        function reflowGearLayout(teethCounts, moduleMm) {
+            ensureGearLayout(teethCounts, moduleMm);
+            const positions = [copyGearPositions()[0]];
+            for (let index = 1; index < teethCounts.length; index++) {
+                const distance = ((teethCounts[index - 1] + teethCounts[index]) * moduleMm) / 2;
+                const angle = gearLayout.linkAngles[index - 1] || 0;
+                const previous = positions[index - 1];
+                positions.push({ x: previous.x + distance * Math.cos(angle), y: previous.y + distance * Math.sin(angle) });
+            }
+            gearLayout.positions = positions;
+            return copyGearPositions(positions);
+        }
+
+        function renderGearDiagram(moduleMm, teethCounts, rpms, centerDistances, positionsToFit = [gearLayout.positions], preserveCurrentTransform = false, initialSizeRatios = null) {
+            const svg = document.getElementById('gearSvg');
+            if (!svg) return;
+            ensureGearLayout(teethCounts, moduleMm);
+            const width = Math.max(280, svg.clientWidth || svg.parentElement.clientWidth || window.innerWidth - 32);
+            const height = Math.max(280, svg.clientHeight || 320);
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            const tipRadii = teethCounts.map(teeth => moduleMm * (teeth / 2 + 1));
+            const fitBounds = (positionsToFit?.length ? positionsToFit : [gearLayout.positions]).flat().reduce((bounds, position, flatIndex) => {
+                const index = flatIndex % teethCounts.length;
+                const radius = tipRadii[index];
+                bounds.minX = Math.min(bounds.minX, position.x - radius);
+                bounds.maxX = Math.max(bounds.maxX, position.x + radius);
+                bounds.minY = Math.min(bounds.minY, position.y - radius);
+                bounds.maxY = Math.max(bounds.maxY, position.y + radius);
+                return bounds;
+            }, { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity });
+            const targetScale = Math.min((width - 112) / Math.max(1, fitBounds.maxX - fitBounds.minX), (height - 112) / Math.max(1, fitBounds.maxY));
+            const minX = fitBounds.minX;
+            const maxX = fitBounds.maxX;
+            const minY = fitBounds.minY;
+            const maxY = fitBounds.maxY;
+            const targetOffsetX = (width - (maxX - minX) * targetScale) / 2 - minX * targetScale;
+            const targetOffsetY = (height - (maxY - minY) * targetScale) / 2 - minY * targetScale;
+            const targetTransform = { scale: targetScale, offsetX: targetOffsetX, offsetY: targetOffsetY, width, height, moduleMm };
+            const oldTransform = svg._layoutTransform;
+            const transform = preserveCurrentTransform && oldTransform ? { ...oldTransform, width, height, moduleMm } : targetTransform;
+            const scale = transform.scale;
+            svg._layoutTransform = transform;
+            svg._gearTargetTransform = targetTransform;
+            svg._gearShapeScaleBase = scale;
+            svg._gearTipRadiiMm = tipRadii;
+            svg._gearSizeFrom = initialSizeRatios?.length === teethCounts.length ? [...initialSizeRatios] : teethCounts.map(() => 1);
+            svg._gearSizeProgress = preserveCurrentTransform ? 0 : 1;
+            svg._gearGeometry = { moduleMm, teethCounts: [...teethCounts] };
+            gearLayout.centerDistances = [...centerDistances];
+            const phases = gearStartingPhases(teethCounts);
+            gearAnimationState.phases = phases;
+            const gearMarkups = teethCounts.map((teeth, index) => gearRotorMarkup(index, teeth, moduleMm, scale, phases[index]));
+            const labels = rpms.map(rpm => `${formatGearNumber(rpm, 2)} rpm`);
+            const letters = teethCounts.map((_, index) => gearLetter(index));
+            const measures = centerDistances.map((distance, index) => `
+                <g data-gear-measure="${index}">
+                    <line data-measure-extension="left" class="gear-centerline"/>
+                    <line data-measure-extension="right" class="gear-centerline"/>
+                    <line data-measure-dimension class="gear-dimension" marker-start="url(#gearDimArrow)" marker-end="url(#gearDimArrow)"/>
+                    <rect data-measure-label-bg class="gear-measure-label-bg" height="22" rx="5"/>
+                    <text data-measure-label class="gear-measure-label">${formatGearNumber(distance, 3)} mm</text>
+                </g>`).join('');
+            const drawOrder = gearMarkups.map((gear, index) => ({ gear, index })).sort((a, b) => b.gear.tipRadius - a.gear.tipRadius);
+            const gears = drawOrder.map(({ gear, index }) => {
+                const roleClass = index === 0 ? 'gear-terminal-input' : index === teethCounts.length - 1 ? 'gear-terminal-output' : 'gear-idler';
+                return `
+                <g data-gear-node="${index}" class="${roleClass}">
+                    ${gear.markup.replace(`rotate(${phases[index].toFixed(3)})`, `rotate(${(phases[index] + (gearAnimationState.angles[index] || 0)).toFixed(3)})`)}
+                    ${gear.tipRadius >= 15 ? `<text class="gear-index" y="1">${letters[index]}</text>` : ''}
+                    <title>Gear ${letters[index]}: ${teethCounts[index]} teeth, ${labels[index]}. Drag to move.</title>
+                </g>`;
+            }).join('');
+            const toothLabels = teethCounts.map((teeth, index) => `
+                <g data-gear-tooth-label="${index}">
+                    <rect class="gear-tooth-label-bg" width="48" height="22" rx="5"/>
+                    <text class="gear-tooth-label">${teeth}T</text>
+                </g>`).join('');
+
+            svg.innerHTML = `
+                <defs>
+                    <marker id="gearArrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#b8244e"/>
+                    </marker>
+                    <marker id="gearDimArrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 10 0 L 0 5 L 10 10 z" fill="#a1a1aa"/>
+                    </marker>
+                </defs>
+                <g aria-hidden="true">
+                    ${gears}
+                    ${measures}
+                    ${toothLabels}
+                </g>`;
+
+            svg.setAttribute('aria-label', `Gear train with ${teethCounts.length} external gears. ${teethCounts.map((teeth, index) => `Gear ${letters[index]} has ${teeth} teeth and rotates at ${labels[index]}`).join('; ')}. Adjacent gears rotate in opposite directions.`);
+            document.getElementById('gearVisualLegend').innerHTML = `
+                <div class="flex flex-wrap justify-center gap-1.5" aria-label="Gear speeds">
+                    ${teethCounts.map((teeth, index) => `<span class="inline-flex items-center gap-2 rounded border border-neutral-800 bg-black px-2.5 py-1.5 text-xs text-neutral-300"><strong class="text-sm text-[#b8244e]">${letters[index]}</strong><span class="rounded-sm px-1 text-[10px] ${index === 0 || index === teethCounts.length - 1 ? 'bg-[#7e0c2b]/20 text-rose-200' : 'text-neutral-500'}">${index === 0 ? 'INPUT' : index === teethCounts.length - 1 ? 'OUTPUT' : 'IDLER'}</span><span>${teeth}T</span><span class="mono-num text-neutral-100">${formatGearNumber(rpms[index], 2)} rpm</span></span>`).join('')}
+                </div>
+                <div class="flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-xs" aria-label="Center distances">
+                    ${centerDistances.map((distance, index) => `<span class="mono-num text-neutral-400"><strong class="font-semibold text-neutral-300">${letters[index]}–${letters[index + 1]}</strong> ${formatGearNumber(distance, 3)} mm</span>`).join('')}
+                </div>`;
+            updateGearDiagramPositions();
+        }
+
+        function updateGearDiagramPositions(centerDistances = gearLayout.centerDistances || []) {
+            const svg = document.getElementById('gearSvg');
+            const transform = svg?._layoutTransform;
+            if (!svg || !transform) return;
+            const shapeScale = svg._gearShapeScaleBase || transform.scale;
+            const shapeRatio = transform.scale / shapeScale;
+            const sizeProgress = svg._gearSizeProgress ?? 1;
+            const sizeRatios = (svg._gearSizeFrom || []).map(sizeFrom => sizeFrom + (1 - sizeFrom) * sizeProgress);
+            const tipRadiiPx = (svg._gearTipRadiiMm || []).map((radius, index) => radius * transform.scale * (sizeRatios[index] ?? 1));
+            const screenPositions = gearLayout.positions.map(position => ({
+                x: position.x * transform.scale + transform.offsetX,
+                y: position.y * transform.scale + transform.offsetY
+            }));
+            screenPositions.forEach((position, index) => {
+                const node = svg.querySelector(`[data-gear-node="${index}"]`);
+                const sizeRatio = sizeRatios[index] ?? 1;
+                if (node) node.setAttribute('transform', `translate(${position.x} ${position.y}) scale(${shapeRatio * sizeRatio})`);
+            });
+            const average = screenPositions.reduce((sum, position) => ({ x: sum.x + position.x / screenPositions.length, y: sum.y + position.y / screenPositions.length }), { x: 0, y: 0 });
+            const placedToothLabels = [];
+            screenPositions.forEach((position, index) => {
+                const label = svg.querySelector(`[data-gear-tooth-label="${index}"]`);
+                if (!label) return;
+                let dx = position.x - average.x;
+                let dy = position.y - average.y;
+                let length = Math.hypot(dx, dy);
+                if (length < 0.001) { dx = 0; dy = 1; length = 1; }
+                const baseAngle = Math.atan2(dy, dx);
+                const allAdjustments = [0, -35, 35, -70, 70, -110, 110, 180];
+                const candidates = label._angleAdjustment === undefined ? allAdjustments : [label._angleAdjustment, ...allAdjustments.filter(value => value !== label._angleAdjustment)];
+                let best = null;
+                let bestClearance = -Infinity;
+                let bestAdjustment = candidates[0];
+                for (const adjustment of candidates) {
+                    const angle = baseAngle + adjustment * Math.PI / 180;
+                    const radius = (tipRadiiPx[index] || 0) + 28;
+                    const candidate = { x: position.x + Math.cos(angle) * radius, y: position.y + Math.sin(angle) * radius };
+                    let clearance = Infinity;
+                    screenPositions.forEach((otherPosition, otherIndex) => {
+                        if (otherIndex !== index) clearance = Math.min(clearance, Math.hypot(candidate.x - otherPosition.x, candidate.y - otherPosition.y) - (tipRadiiPx[otherIndex] || 0) - 29);
+                    });
+                    placedToothLabels.forEach(other => { clearance = Math.min(clearance, Math.hypot(candidate.x - other.x, candidate.y - other.y) - 58); });
+                    if (adjustment === label._angleAdjustment && clearance > -4) { best = candidate; bestClearance = clearance; bestAdjustment = adjustment; break; }
+                    if (clearance > bestClearance) { best = candidate; bestClearance = clearance; bestAdjustment = adjustment; }
+                    if (clearance > 0) break;
+                }
+                label._angleAdjustment = bestAdjustment;
+                const { x, y } = best;
+                label.setAttribute('transform', `translate(${x} ${y})`);
+                const rect = label.querySelector('rect');
+                const text = label.querySelector('text');
+                rect.setAttribute('x', '-24'); rect.setAttribute('y', '-11');
+                text.setAttribute('x', '0'); text.setAttribute('y', '0');
+                placedToothLabels.push({ x, y });
+            });
+            const placedLabels = [];
+            centerDistances.forEach((nominalDistance, index) => {
+                const pair = svg.querySelector(`[data-gear-measure="${index}"]`);
+                if (!pair) return;
+                const a = screenPositions[index];
+                const b = screenPositions[index + 1];
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const length = Math.max(0.001, Math.hypot(dx, dy));
+                let nx = -dy / length;
+                let ny = dx / length;
+                if (ny > 0 || (Math.abs(ny) < 0.01 && nx > 0)) { nx *= -1; ny *= -1; }
+                const offset = Math.max(24, Math.max(tipRadiiPx[index] || 0, tipRadiiPx[index + 1] || 0) + 14);
+                const start = { x: a.x + nx * offset, y: a.y + ny * offset };
+                const end = { x: b.x + nx * offset, y: b.y + ny * offset };
+                const dimension = pair.querySelector('[data-measure-dimension]');
+                dimension.setAttribute('x1', start.x);
+                dimension.setAttribute('y1', start.y);
+                dimension.setAttribute('x2', end.x);
+                dimension.setAttribute('y2', end.y);
+                const extensionA = pair.querySelector('[data-measure-extension="left"]');
+                extensionA.setAttribute('x1', a.x); extensionA.setAttribute('y1', a.y);
+                extensionA.setAttribute('x2', start.x); extensionA.setAttribute('y2', start.y);
+                const extensionB = pair.querySelector('[data-measure-extension="right"]');
+                extensionB.setAttribute('x1', b.x); extensionB.setAttribute('y1', b.y);
+                extensionB.setAttribute('x2', end.x); extensionB.setAttribute('y2', end.y);
+                const labelText = `${formatGearNumber(nominalDistance, 3)} mm`;
+                const width = Math.max(48, labelText.length * 7.2 + 14);
+                const radius = Math.hypot(width / 2, 12);
+                const candidateOrder = index % 2 === 0
+                    ? [0.36, 0.64, 0.25, 0.75, -0.3, 1.3, -0.8, 1.8, 0.5]
+                    : [0.64, 0.36, 0.75, 0.25, 1.3, -0.3, 1.8, -0.8, 0.5];
+                const candidates = pair._measureT === undefined ? candidateOrder : [pair._measureT, ...candidateOrder.filter(t => t !== pair._measureT)];
+                let best = null;
+                let bestScore = -Infinity;
+                let bestT = candidates[0];
+                for (const t of candidates) {
+                    const candidate = { x: start.x + (end.x - start.x) * t, y: start.y + (end.y - start.y) * t };
+                    const clearance = placedLabels.reduce((minimum, placed) => Math.min(minimum, Math.hypot(candidate.x - placed.x, candidate.y - placed.y) - radius - placed.radius - 5), Infinity);
+                    if (clearance > 0) { best = candidate; bestT = t; break; }
+                    if (clearance > bestScore) { best = candidate; bestScore = clearance; bestT = t; }
+                }
+                pair._measureT = bestT;
+                const textNode = pair.querySelector('[data-measure-label]');
+                const bgNode = pair.querySelector('[data-measure-label-bg]');
+                let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                if (angle > 90 || angle < -90) angle += 180;
+                textNode.textContent = labelText;
+                textNode.setAttribute('transform', `rotate(${angle} ${best.x} ${best.y})`);
+                textNode.setAttribute('x', best.x); textNode.setAttribute('y', best.y);
+                bgNode.setAttribute('width', width);
+                bgNode.setAttribute('x', best.x - width / 2); bgNode.setAttribute('y', best.y - 11);
+                bgNode.setAttribute('transform', `rotate(${angle} ${best.x} ${best.y})`);
+                placedLabels.push({ ...best, radius });
+            });
+        }
+
+        function gearPointerWorldPoint(clientX, clientY) {
+            const svg = document.getElementById('gearSvg');
+            const transform = svg?._layoutTransform;
+            const matrix = svg?.getScreenCTM?.();
+            if (!svg || !transform || !matrix) return null;
+            const point = svg.createSVGPoint();
+            point.x = clientX;
+            point.y = clientY;
+            const local = point.matrixTransform(matrix.inverse());
+            return { x: (local.x - transform.offsetX) / transform.scale, y: (local.y - transform.offsetY) / transform.scale };
+        }
+
+        function clearGearHold(pending = gearPointerState.pending) {
+            if (pending?.timer) clearTimeout(pending.timer);
+            pending?.node?.classList.remove('gear-hold-wait');
+            if (gearPointerState.pending === pending) gearPointerState.pending = null;
+        }
+
+        function activateGearDrag(pending) {
+            if (!pending || gearPointerState.pending !== pending || !pending.node.isConnected) return;
+            clearGearHold(pending);
+            if (gearLayout.animationFrame) cancelAnimationFrame(gearLayout.animationFrame);
+            gearLayout.animationFrame = 0;
+            const point = gearPointerWorldPoint(pending.clientX, pending.clientY);
+            if (!point) return;
+            const positions = copyGearPositions();
+            const startPosition = positions[pending.index];
+            gearPointerState.drag = {
+                node: pending.node,
+                pointerId: pending.pointerId,
+                pointerType: pending.pointerType,
+                index: pending.index,
+                teeth: currentGearInputs().map(input => input.value),
+                positions,
+                startPoint: point,
+                offset: { x: startPosition.x - point.x, y: startPosition.y - point.y }
+            };
+            pending.node.classList.add('gear-selected');
+            if (pending.pointerType === 'touch') {
+                try { navigator.vibrate?.(8); } catch (_) {}
+            }
+            try { pending.node.setPointerCapture(pending.pointerId); } catch (_) {}
+        }
+
+        function moveGearDrag(clientX, clientY) {
+            const drag = gearPointerState.drag;
+            if (!drag) return;
+            const point = gearPointerWorldPoint(clientX, clientY);
+            if (!point) return;
+            const desired = { x: point.x + drag.offset.x, y: point.y + drag.offset.y };
+            const base = drag.positions[drag.index];
+            const delta = { x: desired.x - base.x, y: desired.y - base.y };
+            if (Math.hypot(delta.x, delta.y) * (document.getElementById('gearSvg')._layoutTransform?.scale || 1) > 3) drag.hasMoved = true;
+            gearLayout.positions = drag.positions.map((position, index) => index >= drag.index
+                ? { x: position.x + delta.x, y: position.y + delta.y }
+                : { ...position });
+            updateGearDiagramPositions();
+        }
+
+        function finishGearDrag() {
+            const drag = gearPointerState.drag;
+            if (!drag) return;
+            gearPointerState.drag = null;
+            drag.node.classList.remove('gear-selected', 'gear-hold-wait');
+            const preview = copyGearPositions();
+            const index = drag.index;
+            if (!drag.hasMoved) {
+                if (gearLayout.redrawPending) redrawGearDiagramForSize();
+                return;
+            }
+            const moduleMm = Number(document.getElementById('gearModuleInput').value);
+            const teeth = drag.teeth.map(Number);
+            const peers = drag.teeth.map((_, peerIndex) => peerIndex).filter(peerIndex => peerIndex !== index);
+            const nearestIndex = peers.reduce((nearest, peerIndex) => {
+                const distance = Math.hypot(preview[index].x - preview[peerIndex].x, preview[index].y - preview[peerIndex].y);
+                return !nearest || distance < nearest.distance ? { index: peerIndex, distance } : nearest;
+            }, null)?.index;
+            if (nearestIndex === undefined) return;
+            const peerOrder = peers.indexOf(nearestIndex);
+            const previous = peerOrder > 0 ? preview[peers[peerOrder - 1]] : null;
+            const next = peerOrder < peers.length - 1 ? preview[peers[peerOrder + 1]] : null;
+            let tangent = previous && next
+                ? { x: next.x - previous.x, y: next.y - previous.y }
+                : next ? { x: next.x - preview[nearestIndex].x, y: next.y - preview[nearestIndex].y }
+                    : previous ? { x: preview[nearestIndex].x - previous.x, y: preview[nearestIndex].y - previous.y }
+                        : { x: 1, y: 0 };
+            let tangentLength = Math.hypot(tangent.x, tangent.y);
+            if (tangentLength < 0.001) { tangent = { x: 1, y: 0 }; tangentLength = 1; }
+            tangent = { x: tangent.x / tangentLength, y: tangent.y / tangentLength };
+            let dx = preview[index].x - preview[nearestIndex].x;
+            let dy = preview[index].y - preview[nearestIndex].y;
+            let length = Math.hypot(dx, dy);
+            const after = length > 0.001 ? dx * tangent.x + dy * tangent.y >= 0 : true;
+            if (length < 0.001) { dx = tangent.x * (after ? 1 : -1); dy = tangent.y * (after ? 1 : -1); length = 1; }
+            const centerDistance = ((teeth[index] + teeth[nearestIndex]) * moduleMm) / 2;
+            const snapped = {
+                x: preview[nearestIndex].x + dx / length * centerDistance,
+                y: preview[nearestIndex].y + dy / length * centerDistance
+            };
+            const order = [...peers];
+            order.splice(peerOrder + (after ? 1 : 0), 0, index);
+            const orderedPositions = order.map(gearIndex => gearIndex === index ? snapped : preview[gearIndex]);
+            commitGearOrder(order, orderedPositions, drag.teeth);
+        }
+
+        function setupGearInteractions() {
+            const svg = document.getElementById('gearSvg');
+            if (!svg || svg.dataset.interactionsReady) return;
+            svg.dataset.interactionsReady = 'true';
+            svg.addEventListener('pointerdown', event => {
+                const node = event.target.closest?.('[data-gear-node]');
+                if (!node || (event.pointerType === 'mouse' && event.button !== 0) || gearPointerState.drag) return;
+                const index = Number(node.getAttribute('data-gear-node'));
+                const pending = {
+                    node, index, pointerId: event.pointerId, pointerType: event.pointerType,
+                    clientX: event.clientX, clientY: event.clientY, originX: event.clientX, originY: event.clientY,
+                    timer: null
+                };
+                gearPointerState.pending = pending;
+                if (event.pointerType === 'mouse') { event.preventDefault(); activateGearDrag(pending); }
+                else {
+                    node.classList.add('gear-hold-wait');
+                    pending.timer = setTimeout(() => activateGearDrag(pending), 420);
+                }
+            });
+            document.addEventListener('pointermove', event => {
+                const pending = gearPointerState.pending;
+                if (pending && pending.pointerId === event.pointerId && !gearPointerState.drag) {
+                    pending.clientX = event.clientX;
+                    pending.clientY = event.clientY;
+                    if (Math.hypot(event.clientX - pending.originX, event.clientY - pending.originY) > 9) clearGearHold(pending);
+                }
+                if (gearPointerState.drag?.pointerId === event.pointerId) {
+                    event.preventDefault();
+                    moveGearDrag(event.clientX, event.clientY);
+                }
+            });
+            document.addEventListener('pointerup', event => {
+                if (gearPointerState.pending?.pointerId === event.pointerId) {
+                    clearGearHold();
+                    if (gearLayout.redrawPending) redrawGearDiagramForSize();
+                }
+                if (gearPointerState.drag?.pointerId === event.pointerId) finishGearDrag();
+            });
+            document.addEventListener('pointercancel', event => {
+                if (gearPointerState.pending?.pointerId === event.pointerId) clearGearHold();
+                if (gearPointerState.drag?.pointerId === event.pointerId) {
+                    const drag = gearPointerState.drag;
+                    gearPointerState.drag = null;
+                    drag.node.classList.remove('gear-selected', 'gear-hold-wait');
+                    gearLayout.positions = copyGearPositions(drag.positions);
+                    if (gearLayout.redrawPending) redrawGearDiagramForSize();
+                    else updateGearDiagramPositions();
+                }
+            });
+            document.addEventListener('touchmove', event => {
+                if (gearPointerState.drag && event.cancelable) event.preventDefault();
+            }, { passive: false });
+        }
+
+        function animateGearLayout(from, to) {
+            if (gearLayout.animationFrame) cancelAnimationFrame(gearLayout.animationFrame);
+            const start = copyGearPositions(from);
+            const target = copyGearPositions(to);
+            const svg = document.getElementById('gearSvg');
+            const transformStart = { ...(svg?._layoutTransform || {}) };
+            const transformEnd = { ...(svg?._gearTargetTransform || transformStart) };
+            const updateTransform = progress => {
+                if (!svg || !transformStart.scale || !transformEnd.scale) return;
+                svg._gearSizeProgress = progress;
+                svg._layoutTransform = {
+                    scale: transformStart.scale + (transformEnd.scale - transformStart.scale) * progress,
+                    offsetX: transformStart.offsetX + (transformEnd.offsetX - transformStart.offsetX) * progress,
+                    offsetY: transformStart.offsetY + (transformEnd.offsetY - transformStart.offsetY) * progress,
+                    width: transformEnd.width,
+                    height: transformEnd.height,
+                    moduleMm: transformEnd.moduleMm
+                };
+            };
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                gearLayout.positions = target;
+                updateTransform(1);
+                updateGearDiagramPositions();
+                if (gearLayout.redrawPending) redrawGearDiagramForSize();
+                return;
+            }
+            const startedAt = performance.now();
+            const duration = 360;
+            const frame = now => {
+                const progress = Math.min(1, (now - startedAt) / duration);
+                const eased = progress * progress * (3 - 2 * progress);
+                gearLayout.positions = start.map((position, index) => ({
+                    x: position.x + (target[index].x - position.x) * eased,
+                    y: position.y + (target[index].y - position.y) * eased
+                }));
+                updateTransform(eased);
+                updateGearDiagramPositions();
+                if (progress < 1) gearLayout.animationFrame = requestAnimationFrame(frame);
+                else {
+                    gearLayout.positions = target;
+                    gearLayout.animationFrame = 0;
+                    updateTransform(1);
+                    updateGearDiagramPositions();
+                    if (gearLayout.redrawPending) redrawGearDiagramForSize();
+                }
+            };
+            gearLayout.animationFrame = requestAnimationFrame(frame);
+        }
+
+        function calculateGearTrain(options = {}) {
+            if (gearLayout.animationFrame) cancelAnimationFrame(gearLayout.animationFrame);
+            gearLayout.animationFrame = 0;
+            const fields = {
+                module: document.getElementById('gearModuleInput'),
+                rpm: document.getElementById('gearRpmInput')
+            };
+            const gearFields = currentGearInputs();
+            const gearLabels = gearFields.map((_, index) => `Gear ${gearLetter(index)}`);
+            const moduleMm = Number(fields.module.value);
+            const teethCounts = gearFields.map(input => Number(input.value));
+            const rpmA = Number(fields.rpm.value);
+            const errors = [];
+            const validModule = fields.module.value.trim() !== '' && Number.isFinite(moduleMm) && moduleMm > 0;
+            const validRpm = fields.rpm.value.trim() !== '' && Number.isFinite(rpmA) && rpmA >= 0;
+            if (!validModule) errors.push('Enter a module greater than 0 mm.');
+            gearFields.forEach((input, index) => {
+                const teeth = teethCounts[index];
+                const valid = input.value.trim() !== '' && Number.isInteger(teeth) && teeth >= 1 && teeth <= 500;
+                input.setAttribute('aria-invalid', String(!valid));
+                if (!valid) errors.push(`${gearLabels[index]}: enter a whole tooth count from 1 to 500.`);
+            });
+            if (!validRpm) errors.push('Enter an input speed of 0 rpm or higher.');
+            fields.module.setAttribute('aria-invalid', String(!validModule));
+            fields.rpm.setAttribute('aria-invalid', String(!validRpm));
+
+            const validation = document.getElementById('gearValidation');
+            const valid = validModule && validRpm && gearFields.length >= 2 && gearFields.every(input => input.getAttribute('aria-invalid') !== 'true');
+            if (!valid) {
+                validation.textContent = errors.join(' ');
+                validation.classList.remove('hidden');
+                ['gearRatioOutput', 'gearCountOutput', 'gearCenterOutput', 'gearOutputRpm', 'gearTorqueOutput'].forEach(id => {
+                    document.getElementById(id).textContent = '—';
+                });
+                document.getElementById('gearSvg').replaceChildren();
+                document.getElementById('gearVisualLegend').replaceChildren();
+                document.getElementById('gearDetails').replaceChildren();
+                gearAnimationState.rpms = [];
+                if (gearPointerState.pending?.timer) clearTimeout(gearPointerState.pending.timer);
+                gearPointerState.pending = null;
+                gearPointerState.drag = null;
+                clearTimeout(historySaveTimer);
+                return;
+            }
+
+            validation.classList.add('hidden');
+            const firstTeeth = teethCounts[0];
+            const lastTeeth = teethCounts[teethCounts.length - 1];
+            const ratioGcd = greatestCommonDivisor(lastTeeth, firstTeeth);
+            const centerDistances = teethCounts.slice(0, -1).map((teeth, index) => ((teeth + teethCounts[index + 1]) * moduleMm) / 2);
+            const rpms = [rpmA];
+            for (let index = 1; index < teethCounts.length; index++) {
+                rpms.push(rpms[index - 1] * (teethCounts[index - 1] / teethCounts[index]));
+            }
+            const outputLetter = gearLetter(teethCounts.length - 1);
+            const torqueMultiplier = lastTeeth / firstTeeth;
+            document.getElementById('gearRatioOutput').textContent = `${lastTeeth / ratioGcd}:${firstTeeth / ratioGcd}`;
+            document.getElementById('gearCountOutput').textContent = String(teethCounts.length);
+            document.getElementById('gearCenterOutput').innerHTML = centerDistances.map((distance, index) => `<span class="whitespace-nowrap">${gearLetter(index)}–${gearLetter(index + 1)} ${formatGearNumber(distance)} mm</span>`).join('');
+            document.getElementById('gearOutputLabel').textContent = `Output Speed · Gear ${outputLetter}`;
+            document.getElementById('gearOutputRpm').textContent = `${formatGearNumber(rpms[rpms.length - 1], 2)} rpm`;
+            document.getElementById('gearDetails').innerHTML = teethCounts.map((teeth, index) => `
+                <div class="rounded-md border border-neutral-800 bg-black px-3 py-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-semibold text-neutral-200">Gear ${gearLetter(index)} · ${teeth}T</span>
+                        <span class="text-xs font-bold text-[#b8244e]" aria-label="${index % 2 === 0 ? 'Clockwise' : 'Counterclockwise'} rotation">${index % 2 === 0 ? '↻' : '↺'}</span>
+                    </div>
+                    <div class="mt-1 flex items-center justify-between gap-2 text-xs">
+                        <span class="text-neutral-500">Pitch Ø</span>
+                        <span class="mono-num text-neutral-200">${formatGearNumber(teeth * moduleMm)} mm</span>
+                    </div>
+                    <div class="mt-1 flex items-center justify-between gap-2 text-xs">
+                        <span class="text-neutral-500">Speed</span>
+                        <span class="mono-num text-neutral-200">${formatGearNumber(rpms[index], 2)} rpm</span>
+                    </div>
+                </div>`).join('');
+            document.getElementById('gearTorqueOutput').textContent = `${formatGearNumber(torqueMultiplier, 3)}×`;
+            gearAnimationState.rpms = rpms;
+            gearAnimationState.angles = teethCounts.map((_, index) => gearAnimationState.angles[index] || 0);
+            if (options.rotorAngles) gearAnimationState.angles = [...options.rotorAngles];
+            const layoutFrom = options.layoutTransition ? copyGearPositions(options.layoutTransition.from) : null;
+            if (options.anchorPosition) gearLayout.positions[0] = { ...options.anchorPosition };
+            const svg = document.getElementById('gearSvg');
+            const previousGeometry = svg._gearGeometry;
+            const geometryChanged = previousGeometry && (
+                previousGeometry.moduleMm !== moduleMm ||
+                previousGeometry.teethCounts.length !== teethCounts.length ||
+                previousGeometry.teethCounts.some((teeth, index) => teeth !== teethCounts[index])
+            );
+            const implicitLayoutFrom = !layoutFrom && geometryChanged && previousGeometry.teethCounts.length === teethCounts.length && !options.skipGearMorph
+                ? copyGearPositions()
+                : null;
+            const transitionFrom = layoutFrom || implicitLayoutFrom;
+            const sizeRatios = geometryChanged && !options.skipGearMorph && previousGeometry.teethCounts.length === teethCounts.length
+                ? teethCounts.map((teeth, index) => {
+                    const oldRadius = previousGeometry.moduleMm * (previousGeometry.teethCounts[index] / 2 + 1);
+                    const newRadius = moduleMm * (teeth / 2 + 1);
+                    const oldSizeFrom = svg._gearSizeFrom?.[index] ?? 1;
+                    const oldProgress = svg._gearSizeProgress ?? 1;
+                    const currentSize = oldSizeFrom + (1 - oldSizeFrom) * oldProgress;
+                    return Math.max(0.05, Math.min(20, oldRadius * currentSize / newRadius));
+                })
+                : null;
+            const targetPositions = reflowGearLayout(teethCounts, moduleMm);
+            if (transitionFrom) gearLayout.positions = transitionFrom;
+            renderGearDiagram(moduleMm, teethCounts, rpms, centerDistances, [targetPositions], Boolean(transitionFrom), sizeRatios);
+            if (transitionFrom) animateGearLayout(transitionFrom, targetPositions);
+            if (!document.getElementById('sectionGears').classList.contains('hidden')) {
+                if (rpms.some(rpm => rpm > 0)) startGearAnimation();
+                else stopGearAnimation();
+            }
+
+            if (!restoringCalculation) {
+                queueRecentCalculation({
+                    type: 'gears', module: fields.module.value, teeth: gearFields.map(input => input.value), rpm: fields.rpm.value
+                });
+            }
+        }
+
+        function animateGearRotation(timestamp) {
+            if (document.hidden || document.getElementById('sectionGears').classList.contains('hidden')) {
+                gearAnimationState.frame = 0;
+                gearAnimationState.lastTime = null;
+                return;
+            }
+            if (gearAnimationState.lastTime === null) gearAnimationState.lastTime = timestamp;
+            const elapsedSeconds = Math.min((timestamp - gearAnimationState.lastTime) / 1000, 0.1);
+            gearAnimationState.lastTime = timestamp;
+            const fastestRpm = Math.max(...gearAnimationState.rpms.map(Math.abs), 0);
+            if (fastestRpm > 0) {
+                const degreesPerRpm = Math.min(0.09, 90 / fastestRpm);
+                const svg = document.getElementById('gearSvg');
+                gearAnimationState.rpms.forEach((rpm, index) => {
+                    const direction = index % 2 === 0 ? 1 : -1;
+                    gearAnimationState.angles[index] = ((gearAnimationState.angles[index] || 0) + direction * rpm * degreesPerRpm * elapsedSeconds) % 360;
+                    const rotor = svg.querySelector(`[data-gear-rotor="${index}"]`);
+                    if (rotor) rotor.setAttribute('transform', `rotate(${(gearAnimationState.phases[index] || 0) + gearAnimationState.angles[index]})`);
+                });
+            }
+            if (gearAnimationState.rpms.some(rpm => rpm > 0)) {
+                gearAnimationState.frame = requestAnimationFrame(animateGearRotation);
+            } else {
+                gearAnimationState.frame = 0;
+                gearAnimationState.lastTime = null;
+            }
+        }
+
+        function startGearAnimation() {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.hidden || gearAnimationState.frame) return;
+            if (gearAnimationState.rpms.some(rpm => rpm > 0)) gearAnimationState.frame = requestAnimationFrame(animateGearRotation);
+        }
+
+        function stopGearAnimation() {
+            if (gearAnimationState.frame) cancelAnimationFrame(gearAnimationState.frame);
+            gearAnimationState.frame = 0;
+            gearAnimationState.lastTime = null;
+        }
+
+        function redrawGearDiagramForSize() {
+            if (document.getElementById('sectionGears').classList.contains('hidden')) return;
+            if (gearPointerState.drag || gearPointerState.pending || gearLayout.animationFrame) {
+                gearLayout.redrawPending = true;
+                return;
+            }
+            const moduleMm = Number(document.getElementById('gearModuleInput').value);
+            const rpmA = Number(document.getElementById('gearRpmInput').value);
+            const teethCounts = currentGearInputs().map(input => Number(input.value));
+            if (!Number.isFinite(moduleMm) || moduleMm <= 0 || !Number.isFinite(rpmA) || rpmA < 0 || teethCounts.some(teeth => !Number.isInteger(teeth) || teeth < 1 || teeth > 500)) return;
+            const rpms = [rpmA];
+            for (let index = 1; index < teethCounts.length; index++) rpms.push(rpms[index - 1] * teethCounts[index - 1] / teethCounts[index]);
+            const distances = teethCounts.slice(0, -1).map((teeth, index) => (teeth + teethCounts[index + 1]) * moduleMm / 2);
+            renderGearDiagram(moduleMm, teethCounts, rpms, distances);
+            gearLayout.redrawPending = false;
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopGearAnimation();
+            else if (!document.getElementById('sectionGears').classList.contains('hidden')) startGearAnimation();
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             initializeCopyControls();
             updateSegmentedControl('pitchSegments', 0);
             updateSegmentedControl('unitSegments', 1);
             updateSegmentedControl('spacerUnitSegments', 1);
+            observeSegmentedControlSizes();
+            requestAnimationFrame(() => requestAnimationFrame(refreshSegmentedControls));
+            if (document.fonts?.ready) document.fonts.ready.then(() => requestAnimationFrame(refreshSegmentedControls));
             document.querySelectorAll('.unitLabel').forEach(el => el.innerText = 'mm');
             
             const targetCenterInput = document.getElementById('inputTargetCenter');
             if (targetCenterInput) targetCenterInput.value = "125.000";
+            renderGearInputs(['20', '40']);
+            setupGearInteractions();
+            setupGearListInteractions();
+            if ('ResizeObserver' in window) {
+                const gearResizeObserver = new ResizeObserver(() => redrawGearDiagramForSize());
+                gearResizeObserver.observe(document.getElementById('gearSvgWrap'));
+            }
 
             recentCalculations = readRecentCalculations();
             renderRecentCalculations();
 
             restoringCalculation = true;
             recalculate();
+            calculateGearTrain();
             restoringCalculation = false;
         });
 
@@ -887,7 +1976,7 @@
                 const stored = JSON.parse(localStorage.getItem(RECENT_HISTORY_KEY) || '[]');
                 if (!Array.isArray(stored)) return [];
                 return stored.filter(item => item && item.snapshot &&
-                    ['belts', 'spacers'].includes(item.snapshot.type) &&
+                    ['belts', 'spacers', 'gears'].includes(item.snapshot.type) &&
                     typeof item.timestamp === 'number').slice(0, RECENT_HISTORY_LIMIT);
             } catch (_) { return []; }
         }
@@ -915,6 +2004,10 @@
             if (snapshot.type === 'spacers') return {
                 title: 'Spacer Stack',
                 detail: `${snapshot.target} ${snapshot.unit} target`
+            };
+            if (snapshot.type === 'gears') return {
+                title: `Gear Train · ${(snapshot.teeth || [snapshot.teethA, snapshot.teethB]).map((teeth, index) => `${gearLetter(index)}:${teeth}T`).join(' / ')}`,
+                detail: `Module ${snapshot.module} mm · ${snapshot.rpm} rpm input`
             };
             const pitchName = PITCH_PRESETS[snapshot.pitch]?.name || snapshot.pitch;
             return {
@@ -973,7 +2066,7 @@
                 setSpacerUnit(snapshot.unit, false);
                 document.getElementById('targetSpacerInput').value = snapshot.target;
                 calculateSpacers();
-            } else {
+            } else if (snapshot.type === 'belts') {
                 switchTab('belts');
                 if (currentUnit !== snapshot.unit) setUnit(snapshot.unit);
                 if (pitchPresetKey !== snapshot.pitch) setPitch(snapshot.pitch);
@@ -982,6 +2075,12 @@
                 document.getElementById('inputP1').value = snapshot.pulley1;
                 document.getElementById('inputP2').value = snapshot.pulley2;
                 recalculate({ animate: true });
+            } else if (snapshot.type === 'gears') {
+                switchTab('gears');
+                document.getElementById('gearModuleInput').value = snapshot.module || '3';
+                document.getElementById('gearRpmInput').value = snapshot.rpm;
+                renderGearInputs(snapshot.teeth || [snapshot.teethA, snapshot.teethB]);
+                calculateGearTrain();
             }
             restoringCalculation = false;
         }

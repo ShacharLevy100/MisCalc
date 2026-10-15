@@ -3,7 +3,7 @@
   "id": "./",
   "name": "MisCalc",
   "short_name": "MisCalc",
-  "description": "MisCalc calculator",
+  "description": "Spacer, Timing Belt, and Gear Train Calculator",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
