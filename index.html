@@ -996,11 +996,17 @@
                 bounds.maxY = Math.max(bounds.maxY, position.y + radius);
                 return bounds;
             }, { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity });
-            const targetScale = Math.min((width - 112) / Math.max(1, fitBounds.maxX - fitBounds.minX), (height - 112) / Math.max(1, fitBounds.maxY));
             const minX = fitBounds.minX;
             const maxX = fitBounds.maxX;
             const minY = fitBounds.minY;
             const maxY = fitBounds.maxY;
+            const fitWidth = Math.max(1, maxX - minX);
+            const fitHeight = Math.max(1, maxY - minY);
+            const safePadding = 152;
+            const targetScale = Math.min(
+                Math.max(1, width - safePadding) / fitWidth,
+                Math.max(1, height - safePadding) / fitHeight
+            );
             const targetOffsetX = (width - (maxX - minX) * targetScale) / 2 - minX * targetScale;
             const targetOffsetY = (height - (maxY - minY) * targetScale) / 2 - minY * targetScale;
             const targetTransform = { scale: targetScale, offsetX: targetOffsetX, offsetY: targetOffsetY, width, height, moduleMm };
