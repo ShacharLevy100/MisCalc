@@ -229,10 +229,12 @@
                     <label for="targetSpacerInput" class="text-xs font-medium text-neutral-300">
                         Target Dimension
                     </label>
-                    <select id="spacerUnitSelect" onchange="calculateSpacers()" class="bg-black border border-neutral-800 text-xs text-[#7e0c2b] rounded-md px-2.5 py-1 font-semibold focus:outline-none focus:border-[#7e0c2b] transition">
-                        <option value="mm">Metric (mm)</option>
-                        <option value="in">Imperial (in)</option>
-                    </select>
+                    <input type="hidden" id="spacerUnitSelect" value="mm">
+                    <div id="spacerUnitSegments" class="segmented-control flex bg-neutral-900 p-1 rounded-md border border-neutral-800 text-xs gap-1" style="--segment-count:2;--selected-index:1" role="group" aria-label="Spacer units">
+                        <span class="segmented-highlight" aria-hidden="true"></span>
+                        <button type="button" onclick="setSpacerUnit('in')" id="spacerUnitIn" data-segment-index="0" aria-pressed="false" class="segmented-button flex-1 py-1.5 px-2 rounded text-neutral-400 font-medium">Imperial</button>
+                        <button type="button" onclick="setSpacerUnit('mm')" id="spacerUnitMm" data-segment-index="1" aria-pressed="true" class="segmented-button flex-1 py-1.5 px-2 rounded text-neutral-400 font-medium">Metric</button>
+                    </div>
                 </div>
 
                 <div class="relative">
@@ -383,13 +385,13 @@
             { name: '1/32"', mm: 0.79375 }
         ];
 
-        function animateIn(element, animation = 'panel-enter') {
+        function animateIn(element, animation = 'panel-enter', duration = 280) {
             if (!element || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
             return element.animate(
                 animation === 'result-enter'
                     ? [{ opacity: 0, transform: 'translateY(5px) scale(.99)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }]
                     : [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }],
-                { duration: 280, easing: 'cubic-bezier(.2,.75,.25,1)' }
+                { duration, easing: 'cubic-bezier(.2,.75,.25,1)' }
             );
         }
 
@@ -443,6 +445,7 @@
             const pitchIndex = ['HTD5', 'GT2_3', 'GT2_2', 'RT25'].indexOf(pitchPresetKey);
             updateSegmentedControl('pitchSegments', pitchIndex < 0 ? 0 : pitchIndex);
             updateSegmentedControl('unitSegments', currentUnit === 'in' ? 0 : 1);
+            updateSegmentedControl('spacerUnitSegments', document.getElementById('spacerUnitSelect').value === 'in' ? 0 : 1);
         });
 
         function switchTab(tab) {
@@ -455,30 +458,36 @@
             }
             const oldHeight = shell.getBoundingClientRect().height;
             shell.style.removeProperty('height');
+            shell.style.removeProperty('overflow');
             const wasSpacers = !document.getElementById('sectionSpacers').classList.contains('hidden');
             if (wasSpacers === isSpacers) return;
             document.getElementById('sectionSpacers').classList.toggle('hidden', !isSpacers);
             document.getElementById('sectionBelts').classList.toggle('hidden', isSpacers);
             const activeSection = document.getElementById(isSpacers ? 'sectionSpacers' : 'sectionBelts');
             const newHeight = shell.getBoundingClientRect().height;
+            const isExpanding = newHeight > oldHeight;
             
             document.getElementById('tabSpacers').className = `tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition ${isSpacers ? 'bg-[#7e0c2b] text-white shadow-md' : 'text-neutral-400 hover:text-white'}`;
             document.getElementById('tabBelts').className = `tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition ${!isSpacers ? 'bg-[#7e0c2b] text-white shadow-md' : 'text-neutral-400 hover:text-white'}`;
-            animateIn(activeSection);
+            activeSection.getAnimations().forEach(animation => animation.cancel());
+            animateIn(activeSection, 'panel-enter', isExpanding ? 440 : 280);
             requestAnimationFrame(() => {
                 updateSegmentedControl('pitchSegments', ['HTD5', 'GT2_3', 'GT2_2', 'RT25'].indexOf(pitchPresetKey));
                 updateSegmentedControl('unitSegments', currentUnit === 'in' ? 0 : 1);
+                updateSegmentedControl('spacerUnitSegments', document.getElementById('spacerUnitSelect').value === 'in' ? 0 : 1);
             });
             if (oldHeight !== newHeight && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
                 shell.style.height = `${oldHeight}px`;
+                if (isExpanding) shell.style.overflow = 'hidden';
                 shell.getBoundingClientRect();
                 const heightAnimation = shell.animate([{ height: `${oldHeight}px` }, { height: `${newHeight}px` }], {
-                    duration: 360, easing: 'cubic-bezier(.22,.8,.22,1)'
+                    duration: isExpanding ? 520 : 360, easing: 'cubic-bezier(.22,.8,.22,1)'
                 });
                 shell._heightAnimation = heightAnimation;
                 heightAnimation.onfinish = () => {
                     if (shell._heightAnimation !== heightAnimation) return;
                     shell.style.removeProperty('height');
+                    shell.style.removeProperty('overflow');
                     shell._heightAnimation = null;
                 };
             }
@@ -488,11 +497,9 @@
             initializeCopyControls();
             updateSegmentedControl('pitchSegments', 0);
             updateSegmentedControl('unitSegments', 1);
+            updateSegmentedControl('spacerUnitSegments', 1);
             document.querySelectorAll('.unitLabel').forEach(el => el.innerText = 'mm');
             
-            const spacerUnitSelect = document.getElementById('spacerUnitSelect');
-            if (spacerUnitSelect) spacerUnitSelect.value = 'mm';
-
             const targetCenterInput = document.getElementById('inputTargetCenter');
             if (targetCenterInput) targetCenterInput.value = "125.000";
 
@@ -594,6 +601,14 @@
             }
 
             recalculate({ animate: !restoringCalculation });
+        }
+
+        function setSpacerUnit(unit, shouldCalculate = true) {
+            const unitInput = document.getElementById('spacerUnitSelect');
+            if (!unitInput || !['mm', 'in'].includes(unit)) return;
+            unitInput.value = unit;
+            updateSegmentedControl('spacerUnitSegments', unit === 'in' ? 0 : 1);
+            if (shouldCalculate) calculateSpacers();
         }
 
         function getPitchDiameterMm(teeth, pitchMm) {
@@ -955,7 +970,7 @@
             const snapshot = item.snapshot;
             if (snapshot.type === 'spacers') {
                 switchTab('spacers');
-                document.getElementById('spacerUnitSelect').value = snapshot.unit;
+                setSpacerUnit(snapshot.unit, false);
                 document.getElementById('targetSpacerInput').value = snapshot.target;
                 calculateSpacers();
             } else {
