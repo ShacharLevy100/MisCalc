@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#7e0c2b">
     <meta name="description" content="Spacer, Timing Belt, and Gear Train Calculator">
     <link rel="manifest" href="./manifest.json">
     <title>MisCalc</title>
@@ -179,6 +179,7 @@
                 display: grid;
                 grid-template-columns: minmax(19rem, .85fr) minmax(0, 1.15fr);
                 grid-template-areas:
+                    "intro intro"
                     "selectors selectors"
                     "parameters diagram"
                     "parameters results";
@@ -186,39 +187,42 @@
                 gap: 1.25rem 1.5rem;
             }
             body.app-page #sectionBelts:not(.hidden) > * { min-width: 0; margin-top: 0; }
-            body.app-page #sectionBelts:not(.hidden) > :nth-child(1) { grid-area: selectors; }
-            body.app-page #sectionBelts:not(.hidden) > :nth-child(2) { grid-area: parameters; }
-            body.app-page #sectionBelts:not(.hidden) > :nth-child(3) { grid-area: diagram; }
-            body.app-page #sectionBelts:not(.hidden) > :nth-child(4) { grid-area: results; }
-            body.app-page #sectionBelts:not(.hidden) > :nth-child(3) > div:nth-child(2) {
+            body.app-page #sectionBelts:not(.hidden) > .module-intro { grid-area: intro; }
+            body.app-page #beltSelectors { grid-area: selectors; }
+            body.app-page #beltParameters { grid-area: parameters; }
+            body.app-page #beltDiagram { grid-area: diagram; }
+            body.app-page #beltResults { grid-area: results; }
+            body.app-page #beltDiagram > div:nth-child(2) {
                 height: clamp(13rem, 22vw, 20rem);
             }
             body.app-page #sectionGears:not(.hidden) {
                 display: grid;
                 grid-template-columns: minmax(17rem, .72fr) minmax(0, 1.28fr);
                 grid-template-areas:
+                    "intro intro"
                     "inputs diagram"
                     "results results";
                 align-items: start;
                 gap: 1.25rem 1.5rem;
             }
             body.app-page #sectionGears:not(.hidden) > * { min-width: 0; margin-top: 0; }
+            body.app-page #sectionGears:not(.hidden) > .module-intro { grid-area: intro; }
             body.app-page #gearInputs { grid-area: inputs; }
             body.app-page #gearDiagramPanel { grid-area: diagram; }
             body.app-page #gearResults { grid-area: results; }
             body.app-page #gearSvgWrap { height: clamp(16rem, 24vw, 19rem); }
         }
-        #gearSvg .gear-tooth-body { fill: #030303; stroke: #7e0c2b; stroke-width: 2; stroke-linejoin: round; }
-        #gearSvg .gear-pitch-circle { fill: none; stroke: #52525b; stroke-width: 1; stroke-dasharray: 3 4; opacity: .65; }
-        #gearSvg .gear-spoke { stroke: #27272a; stroke-width: 1.8; stroke-linecap: round; }
-        #gearSvg .gear-hub { fill: #000; stroke: #7e0c2b; stroke-width: 1.5; }
+        #gearSvg .gear-tooth-body { fill: var(--gear-tooth-fill, #030303); stroke: #7e0c2b; stroke-width: 2; stroke-linejoin: round; }
+        #gearSvg .gear-pitch-circle { fill: none; stroke: var(--gear-pitch, #52525b); stroke-width: 1; stroke-dasharray: 3 4; opacity: .65; }
+        #gearSvg .gear-spoke { stroke: var(--gear-spoke, #27272a); stroke-width: 1.8; stroke-linecap: round; }
+        #gearSvg .gear-hub { fill: var(--gear-hub-fill, #000); stroke: #7e0c2b; stroke-width: 1.5; }
         #gearSvg .gear-spin-arrow { fill: none; stroke: #7e0c2b; stroke-width: 1.8; stroke-linecap: round; }
-        #gearSvg .gear-dimension { stroke: #71717a; stroke-width: 1.1; }
-        #gearSvg .gear-centerline { stroke: #3f3f46; stroke-width: 1; stroke-dasharray: 3 4; }
-        #gearSvg .gear-index { fill: #d4d4d8; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
-        #gearSvg .gear-tooth-label { fill: #e4e4e7; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
-        #gearSvg .gear-measure-label { fill: #f4f4f5; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
-        #gearSvg .gear-measure-label-bg, #gearSvg .gear-tooth-label-bg { fill: #09090b; stroke: #3f3f46; stroke-width: 1; }
+        #gearSvg .gear-dimension { stroke: var(--gear-dimension, #71717a); stroke-width: 1.1; }
+        #gearSvg .gear-centerline { stroke: var(--gear-centerline, #3f3f46); stroke-width: 1; stroke-dasharray: 3 4; }
+        #gearSvg .gear-index { fill: var(--gear-label, #d4d4d8); font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+        #gearSvg .gear-tooth-label { fill: var(--gear-label, #e4e4e7); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+        #gearSvg .gear-measure-label { fill: var(--gear-label, #f4f4f5); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+        #gearSvg .gear-measure-label-bg, #gearSvg .gear-tooth-label-bg { fill: var(--gear-label-bg, #09090b); stroke: var(--gear-label-border, #3f3f46); stroke-width: 1; }
         #gearSvg [data-gear-measure], #gearSvg [data-gear-tooth-label] { pointer-events: none; }
         #gearSvg .gear-terminal-input .gear-tooth-body { stroke: #b8244e; stroke-width: 2.5; }
         #gearSvg .gear-terminal-output .gear-tooth-body { stroke: #692039; stroke-width: 2.5; }
@@ -247,27 +251,268 @@
         @media (prefers-reduced-motion: reduce) {
             #gearSvg .gear-tooth-body, #gearSvg .gear-spin-arrow { transition: none !important; }
         }
+
+        /* Redesign: clear workshop workspace, with a saved light/dark appearance. */
+        body.app-page {
+            --page-bg: #f4eff0;
+            --surface-main: #fff;
+            --surface-raised: #f8f4f5;
+            --surface-inset: #f4eff0;
+            --surface-control: #fff;
+            --line: #e5dadd;
+            --line-soft: #eee6e8;
+            --text-strong: #241b1e;
+            --text-main: #463b3f;
+            --text-muted: #71656a;
+            --text-subtle: #91858a;
+            --gear-tooth-fill: #fff;
+            --gear-hub-fill: #fff;
+            --gear-spoke: #d7cdd0;
+            --gear-pitch: #b9aeb2;
+            --gear-dimension: #776b70;
+            --gear-centerline: #c8bdc1;
+            --gear-label: #43383c;
+            --gear-label-bg: #fff;
+            --gear-label-border: #d9cdd1;
+            background: var(--page-bg) !important;
+            color: var(--text-strong) !important;
+            transition: background-color .2s ease, color .2s ease;
+        }
+        body.app-page[data-theme="dark"] {
+            --page-bg: #141113;
+            --surface-main: #1d191b;
+            --surface-raised: #272124;
+            --surface-inset: #181517;
+            --surface-control: #171416;
+            --line: #3b3236;
+            --line-soft: #30292c;
+            --text-strong: #faf7f8;
+            --text-main: #e9e2e5;
+            --text-muted: #b2a7ac;
+            --text-subtle: #887d82;
+            --gear-tooth-fill: #171416;
+            --gear-hub-fill: #141113;
+            --gear-spoke: #30292c;
+            --gear-pitch: #6b6065;
+            --gear-dimension: #a89da2;
+            --gear-centerline: #51474b;
+            --gear-label: #f0e9ec;
+            --gear-label-bg: #1b1719;
+            --gear-label-border: #51474b;
+        }
+        body.app-page > #appShell {
+            display: flex;
+            flex-direction: column;
+            width: min(100%, 76rem);
+            max-width: none;
+            margin-inline: auto;
+            padding: clamp(1.15rem, 3vw, 2.5rem);
+            gap: 1.25rem;
+            border: 1px solid var(--line);
+            border-radius: 1.5rem;
+            background: var(--surface-main);
+            box-shadow: 0 24px 70px rgba(48, 20, 30, .1), 0 2px 8px rgba(48, 20, 30, .04);
+        }
+        body.app-page[data-theme="dark"] > #appShell {
+            box-shadow: 0 24px 70px rgba(0, 0, 0, .36), 0 2px 8px rgba(0, 0, 0, .22);
+        }
+        body.app-page #appHeader {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 1.15rem 1.5rem;
+            border-color: var(--line-soft);
+        }
+        #appBrand { min-width: 0; }
+        #appLogo {
+            display: grid;
+            width: 2.8rem;
+            height: 2.8rem;
+            place-items: center;
+            border-radius: .9rem;
+            background: #7e0c2b;
+            color: #fff;
+            box-shadow: 0 5px 14px rgba(126, 12, 43, .19);
+        }
+        #appBrand h1 { color: var(--text-strong); font-size: 1.1rem; letter-spacing: -.025em; }
+        #appBrand p { margin-top: .2rem; color: var(--text-muted); font-size: .76rem; }
+        #moduleTabs {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            width: 100%;
+            gap: .35rem;
+            padding: .3rem;
+            border: 1px solid var(--line);
+            border-radius: .95rem;
+            background: var(--surface-raised);
+        }
+        #moduleTabs .tab-btn {
+            min-height: 2.7rem;
+            padding: .55rem .7rem;
+            border-radius: .7rem;
+            color: var(--text-muted);
+            font-size: .78rem;
+            line-height: 1.2;
+        }
+        #moduleTabs .tab-btn:hover:not([aria-pressed="true"]) { color: var(--text-strong); }
+        #moduleTabs .tab-btn[aria-pressed="true"] {
+            background: #7e0c2b;
+            color: #fff !important;
+            box-shadow: 0 3px 10px rgba(126, 12, 43, .2);
+        }
+        #openSettingsButton {
+            display: inline-flex;
+            min-height: 2.7rem;
+            align-items: center;
+            justify-content: center;
+            gap: .55rem;
+            padding: .55rem .8rem;
+            border: 1px solid var(--line);
+            border-radius: .8rem;
+            background: var(--surface-main);
+            color: var(--text-main);
+            font-size: .78rem;
+            font-weight: 650;
+        }
+        #openSettingsButton:hover { border-color: #c4aeb5; background: var(--surface-raised); }
+        #openSettingsButton svg { width: 1rem; height: 1rem; color: #7e0c2b; }
+        #recentHistory { border-color: var(--line-soft); padding-block: .25rem .8rem; }
+        #recentHistory summary { min-height: 2rem; color: var(--text-main); }
+        #recentHistory summary:hover { color: #7e0c2b; }
+        .module-intro { padding: .2rem .15rem .3rem; }
+        .module-intro h2 { color: var(--text-strong); font-size: clamp(1.15rem, 2vw, 1.45rem); font-weight: 700; letter-spacing: -.035em; }
+        .module-intro p { margin-top: .3rem; color: var(--text-muted); font-size: .82rem; line-height: 1.5; }
+        #sectionSpacers, #sectionBelts, #sectionGears { color: var(--text-main); }
+        #sectionSpacers input, #sectionBelts input, #sectionGears input { background-color: var(--surface-control) !important; color: var(--text-strong) !important; border-color: var(--line) !important; }
+        #sectionSpacers input::placeholder, #sectionBelts input::placeholder, #sectionGears input::placeholder { color: var(--text-subtle); }
+        #sectionSpacers input:focus, #sectionBelts input:focus, #sectionGears input:focus { border-color: #7e0c2b !important; box-shadow: 0 0 0 3px rgba(126, 12, 43, .12); }
+        #sectionBelts > div, #sectionGears > section, #selectedBeltCard, #smallerBeltCard, #largerBeltCard { border-color: var(--line) !important; }
+        body.app-page .bg-black { background-color: var(--surface-main) !important; }
+        body.app-page .bg-neutral-950 { background-color: var(--surface-inset) !important; }
+        body.app-page .bg-neutral-900 { background-color: var(--surface-raised) !important; }
+        body.app-page .border-neutral-800 { border-color: var(--line) !important; }
+        body.app-page .border-neutral-900 { border-color: var(--line-soft) !important; }
+        body.app-page .text-white { color: var(--text-strong) !important; }
+        body.app-page .text-neutral-100, body.app-page .text-neutral-200 { color: var(--text-main) !important; }
+        body.app-page .text-neutral-300, body.app-page .text-neutral-400 { color: var(--text-muted) !important; }
+        body.app-page .text-neutral-500, body.app-page .text-neutral-600 { color: var(--text-subtle) !important; }
+        body.app-page .segmented-button[aria-pressed="true"] { color: #fff !important; }
+        body.app-page .spacer-row { color: var(--text-main); }
+        body.app-page .spacer-row .text-white { color: var(--text-strong) !important; }
+        body.app-page #gearSvgWrap { background-color: var(--surface-inset); }
+        body.app-page #gearSvg .gear-tooth-body { fill: var(--gear-tooth-fill); }
+        body.app-page #gearSvg .gear-hub { fill: var(--gear-hub-fill); }
+        body.app-page #gearSvg .gear-spoke { stroke: var(--gear-spoke); }
+        body.app-page #gearSvg .gear-pitch-circle { stroke: var(--gear-pitch); }
+        body.app-page #gearSvg .gear-dimension { stroke: var(--gear-dimension); }
+        body.app-page #gearSvg .gear-centerline { stroke: var(--gear-centerline); }
+        body.app-page #gearSvg .gear-index, body.app-page #gearSvg .gear-tooth-label, body.app-page #gearSvg .gear-measure-label { fill: var(--gear-label); }
+        body.app-page #gearSvg .gear-measure-label-bg, body.app-page #gearSvg .gear-tooth-label-bg { fill: var(--gear-label-bg); stroke: var(--gear-label-border); }
+        body.app-page #gearSvg .gear-spin-arrow { stroke: #7e0c2b; }
+        body.app-page[data-theme="light"] #gearVisualLegend .text-rose-200 { color: #7e0c2b !important; }
+        body.app-page[data-theme="light"] #gearVisualLegend .text-indigo-200 { color: #3730a3 !important; }
+        body.app-page[data-theme="light"] #gearList .gear-shaft-control.is-linked.text-indigo-100,
+        body.app-page[data-theme="light"] #gearList .text-indigo-200 { color: #3730a3 !important; }
+        body.app-page[data-theme="light"] #gearList .text-indigo-200 { background: #e4e9ff; }
+        body.app-page[data-theme="light"] .text-emerald-400 { color: #047857 !important; }
+        body.app-page[data-theme="light"] .text-amber-400 { color: #92400e !important; }
+        body.app-page[data-theme="light"] #gearValidation { color: #991b1b; background: #fef2f2; border-color: #fecaca; }
+        body.app-page[data-theme="light"] #gearList .gear-row-dragging { border-color: #7e0c2b; background: #f7ebef; box-shadow: 0 0 0 1px rgba(126, 12, 43, .28), 0 18px 36px rgba(48, 20, 30, .18); }
+        body.app-page[data-theme="light"] .gear-shaft-control.is-linked { border-color: #a5b4fc; background: #eef2ff; color: #3730a3; }
+        #spacersEmptyState { border-color: var(--line-soft); }
+        #spacersResultsContainer > .bg-black { border-color: var(--line) !important; }
+        .settings-dialog {
+            width: min(100% - 2rem, 27rem);
+            max-width: 27rem;
+            padding: 0;
+            overflow: visible;
+            border: 1px solid var(--line);
+            border-radius: 1.25rem;
+            background: var(--surface-main);
+            color: var(--text-strong);
+            box-shadow: 0 24px 80px rgba(20, 8, 13, .28);
+        }
+        .settings-dialog::backdrop { background: rgba(24, 12, 17, .44); backdrop-filter: blur(3px); }
+        .settings-panel { padding: 1.45rem; }
+        .settings-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+        .settings-eyebrow { color: #7e0c2b; font-size: .65rem; font-weight: 750; letter-spacing: .12em; }
+        .settings-heading h2 { margin-top: .25rem; font-size: 1.3rem; font-weight: 750; letter-spacing: -.035em; }
+        .settings-heading p:last-child { margin-top: .35rem; max-width: 21rem; color: var(--text-muted); font-size: .8rem; line-height: 1.5; }
+        .settings-close {
+            display: grid;
+            width: 2.4rem;
+            height: 2.4rem;
+            flex: 0 0 auto;
+            place-items: center;
+            border: 1px solid var(--line);
+            border-radius: .75rem;
+            background: var(--surface-raised);
+            color: var(--text-muted);
+        }
+        .settings-close svg { width: 1rem; height: 1rem; }
+        .appearance-section { margin-top: 1.35rem; padding-top: 1.25rem; border-top: 1px solid var(--line-soft); }
+        .appearance-section h3 { font-size: .86rem; font-weight: 700; }
+        .appearance-section > p { margin-top: .25rem; color: var(--text-muted); font-size: .75rem; }
+        .theme-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: .9rem; }
+        .theme-choice {
+            display: flex;
+            min-height: 5.3rem;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            gap: .35rem;
+            padding: .75rem;
+            border: 1px solid var(--line);
+            border-radius: .85rem;
+            background: var(--surface-raised);
+            color: var(--text-main);
+            text-align: left;
+        }
+        .theme-choice:hover { border-color: #c4aeb5; }
+        .theme-choice[aria-pressed="true"] { border-color: #7e0c2b; background: rgba(126, 12, 43, .07); box-shadow: inset 0 0 0 1px #7e0c2b; }
+        .theme-choice-label { display: inline-flex; align-items: center; gap: .45rem; font-size: .8rem; font-weight: 700; }
+        .theme-choice-label svg { width: 1rem; height: 1rem; color: #7e0c2b; }
+        .theme-choice small { color: var(--text-muted); font-size: .68rem; }
+        #themeSaveStatus { min-height: 1rem; margin-top: .8rem; color: var(--text-subtle); font-size: .7rem; }
+        .module-footer { display: flex; align-items: center; gap: .45rem; padding-top: .4rem; color: var(--text-subtle); font-size: .7rem; }
+        .module-footer svg { width: .9rem; height: .9rem; color: #7e0c2b; }
+        body.app-page :focus-visible { outline: 3px solid rgba(126, 12, 43, .68); outline-offset: 3px; }
+        @media (max-width: 480px) {
+            body.app-page { padding: max(.65rem, env(safe-area-inset-top)) max(.65rem, env(safe-area-inset-right)) max(.65rem, env(safe-area-inset-bottom)) max(.65rem, env(safe-area-inset-left)); }
+            body.app-page > #appShell { border-radius: 1.1rem; }
+            #moduleTabs .tab-btn { padding-inline: .35rem; font-size: .7rem; }
+            #openSettingsButton { width: 2.7rem; padding: .5rem; }
+            #openSettingsButton span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+        }
+        @media (prefers-reduced-motion: reduce) { body.app-page, .settings-dialog { transition: none !important; } }
     </style>
 </head>
 <body class="app-page">
 
-    <div class="w-full max-w-md bg-neutral-900 rounded-xl border border-neutral-800 p-6 shadow-2xl space-y-6">
+    <div id="appShell" role="main" aria-label="MisCalc calculators" class="w-full max-w-md bg-neutral-900 rounded-xl border border-neutral-800 p-6 shadow-2xl">
 
         <!-- Top Header & Tabs -->
-        <div class="flex flex-col sm:flex-row justify-between items-start border-b border-neutral-800 pb-4 gap-4">
-            <div>
-                <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-[#7e0c2b] shadow-lg shadow-[#7e0c2b]/50"></span>
-                    MisCalc
-                </h1>
+        <header id="appHeader" class="border-b border-neutral-800 pb-4">
+            <div id="appBrand" class="flex items-center gap-3">
+                <span id="appLogo" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5z"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12.1V21"/><circle cx="12" cy="12" r="2.2"/></svg>
+                </span>
+                <div>
+                    <h1 class="font-bold tracking-tight">MisCalc</h1>
+                    <p>Precision workshop calculators</p>
+                </div>
             </div>
-            
-            <div class="flex bg-black p-1 rounded-lg border border-neutral-800 w-full sm:w-auto" role="group" aria-label="Calculator modules">
-                <button type="button" onclick="switchTab('spacers')" id="tabSpacers" aria-pressed="true" class="tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md bg-[#7e0c2b] text-white shadow-md">Spacers</button>
-                <button type="button" onclick="switchTab('belts')" id="tabBelts" aria-pressed="false" class="tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md text-neutral-400 hover:text-white">Timing Belts</button>
-                <button type="button" onclick="switchTab('gears')" id="tabGears" aria-pressed="false" class="tab-btn flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md text-neutral-400 hover:text-white">Gear Train</button>
+            <button id="openSettingsButton" type="button" onclick="openSettings()" aria-haspopup="dialog" aria-controls="settingsDialog">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.6 2.77-.08-.02a1.7 1.7 0 0 0-1.77.5l-.05.06h-3.2l-.04-.08a1.7 1.7 0 0 0-1.6-1.03c-.4 0-.77.14-1.06.39l-.06.05-2.77-1.6.02-.08a1.7 1.7 0 0 0-.5-1.77l-.06-.05v-3.2l.08-.04a1.7 1.7 0 0 0 1.03-1.6c0-.4-.14-.77-.39-1.06l-.05-.06 1.6-2.77.08.02a1.7 1.7 0 0 0 1.77-.5l.05-.06h3.2l.04.08a1.7 1.7 0 0 0 1.6 1.03c.4 0 .77-.14 1.06-.39l.06-.05 2.77 1.6-.02.08a1.7 1.7 0 0 0 .5 1.77l.06.05v3.2z"/></svg>
+                <span>Settings</span>
+            </button>
+            <div id="moduleTabs" role="group" aria-label="Calculator modules">
+                <button type="button" onclick="switchTab('spacers')" id="tabSpacers" aria-pressed="true" class="tab-btn">Spacers</button>
+                <button type="button" onclick="switchTab('belts')" id="tabBelts" aria-pressed="false" class="tab-btn">Timing Belts</button>
+                <button type="button" onclick="switchTab('gears')" id="tabGears" aria-pressed="false" class="tab-btn">Gear Train</button>
             </div>
-        </div>
+        </header>
 
         <details id="recentHistory" class="border-b border-neutral-800 pt-3 pb-3">
             <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-xs font-semibold text-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7e0c2b] rounded">
@@ -285,6 +530,10 @@
 
         <!-- ================= SPACERS TAB (Default) ================= -->
         <div id="sectionSpacers" class="space-y-4">
+            <div class="module-intro">
+                <h2>Spacer stack</h2>
+                <p>Find the closest stack from the spacer sizes in your kit.</p>
+            </div>
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
                     <label for="targetSpacerInput" class="text-xs font-medium text-neutral-300">
@@ -327,9 +576,13 @@
 
         <!-- ================= TIMING BELTS TAB ================= -->
         <div id="sectionBelts" class="space-y-4 hidden">
+            <div class="module-intro">
+                <h2>Timing belt layout</h2>
+                <p>Match pulley spacing to a standard belt length.</p>
+            </div>
 
             <!-- Pitch & Unit Selectors -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div id="beltSelectors" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="bg-black border border-neutral-800 rounded-lg p-3 space-y-2">
                     <div class="flex justify-between items-center">
                         <label class="text-xs font-medium text-neutral-300">Belt Pitch</label>
@@ -358,7 +611,7 @@
             </div>
 
             <!-- Parameters Card -->
-            <div class="space-y-3 pt-1">
+            <div id="beltParameters" class="space-y-3 pt-1">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="space-y-1">
                         <label class="block text-xs text-neutral-300 font-medium">
@@ -395,7 +648,7 @@
             </div>
 
             <!-- SVG Diagram -->
-            <div class="bg-black border border-neutral-800 rounded-lg p-3 flex flex-col items-center space-y-2">
+            <div id="beltDiagram" class="bg-black border border-neutral-800 rounded-lg p-3 flex flex-col items-center space-y-2">
                 <div class="w-full flex justify-between items-center text-xs text-neutral-400 font-medium px-1">
                     <span>Layout Preview</span>
                     <span id="diagramInfo" class="text-[#7e0c2b] font-bold mono-num text-[11px]">24T - 24T @ 125.00 mm</span>
@@ -406,7 +659,7 @@
             </div>
 
             <!-- Results Section -->
-            <div class="space-y-2 pt-1">
+            <div id="beltResults" class="space-y-2 pt-1">
                 <div class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Recommended Belts</div>
                 <div id="selectedBeltCard" class="bg-black border-2 border-[#7e0c2b] rounded-lg p-3.5 space-y-2.5"></div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -419,6 +672,10 @@
 
         <!-- ================= GEAR TRAIN TAB ================= -->
         <div id="sectionGears" class="space-y-4 hidden">
+            <div class="module-intro">
+                <h2>Gear train</h2>
+                <p>Explore ratios, speed, torque, and center distance.</p>
+            </div>
             <section id="gearInputs" class="rounded-lg border border-neutral-800 bg-black p-3.5 space-y-3" aria-labelledby="gearInputsTitle">
                 <div>
                     <h2 id="gearInputsTitle" class="text-xs font-semibold uppercase tracking-wider text-neutral-300">Gear Parameters</h2>
@@ -530,6 +787,40 @@
             </section>
         </div>
 
+        <footer class="module-footer">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="8.5" width="12" height="9" rx="2"/><path d="M6.5 8.5V6a3.5 3.5 0 0 1 7 0v2.5"/></svg>
+            <span>Your calculations stay on this device</span>
+        </footer>
+
+        <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
+            <div class="settings-panel">
+                <div class="settings-heading">
+                    <div>
+                        <p class="settings-eyebrow">PREFERENCES</p>
+                        <h2 id="settingsTitle">Settings</h2>
+                        <p>Choose an appearance that works for your space.</p>
+                    </div>
+                    <button class="settings-close" type="button" onclick="closeSettings()" aria-label="Close settings">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>
+                    </button>
+                </div>
+                <section class="appearance-section" aria-labelledby="appearanceTitle">
+                    <h3 id="appearanceTitle">Appearance</h3>
+                    <p>Set the color theme for MisCalc.</p>
+                    <div class="theme-choices" role="group" aria-label="Color theme">
+                        <button id="themeLightButton" class="theme-choice" type="button" aria-pressed="false" onclick="setTheme('light')">
+                            <span class="theme-choice-label"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="3.3"/><path d="M10 1.8v1.6m0 13.2v1.6M1.8 10h1.6m13.2 0h1.6M4.2 4.2l1.1 1.1m9.4 9.4 1.1 1.1m0-11.6-1.1 1.1m-9.4 9.4-1.1 1.1"/></svg>Light mode</span>
+                            <small>Bright surfaces</small>
+                        </button>
+                        <button id="themeDarkButton" class="theme-choice" type="button" aria-pressed="false" onclick="setTheme('dark')">
+                            <span class="theme-choice-label"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.7 12.5A7.4 7.4 0 0 1 7.5 3.3 7.5 7.5 0 1 0 16.7 12.5Z"/></svg>Dark mode</span>
+                            <small>Low-light workspace</small>
+                        </button>
+                    </div>
+                    <p id="themeSaveStatus" aria-live="polite">Saved on this device.</p>
+                </section>
+            </div>
+        </dialog>
     </div>
 
     <script>
@@ -537,7 +828,8 @@
         let gearUnit = 'in';
         let currentPitchMm = 5.0;
         let pitchPresetKey = 'HTD5';
-        const RECENT_HISTORY_KEY = 'miscalc.recent-calculations.v1';
+        const RECENT_HISTORY_KEY = 'miscalc-redesign.recent-calculations.v1';
+        const THEME_STORAGE_KEY = 'miscalc-redesign.theme.v1';
         const RECENT_HISTORY_LIMIT = 10;
         let recentCalculations = [];
         let historySaveTimer = null;
@@ -547,6 +839,42 @@
         const gearLayout = { positions: [], linkAngles: [], animationFrame: 0, redrawPending: false };
         const gearPointerState = { pending: null, drag: null };
         const gearListDragState = { index: null, targetIndex: null, pointerId: null, timer: null, touchActive: false, row: null, startX: 0, startY: 0, startTop: 0, startLeft: 0 };
+
+        function setTheme(theme) {
+            if (theme !== 'light' && theme !== 'dark') return;
+            document.body.dataset.theme = theme;
+            document.documentElement.style.colorScheme = theme;
+            document.documentElement.style.backgroundColor = theme === 'dark' ? '#141113' : '#f4eff0';
+            document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#7e0c2b');
+            document.getElementById('themeLightButton')?.setAttribute('aria-pressed', String(theme === 'light'));
+            document.getElementById('themeDarkButton')?.setAttribute('aria-pressed', String(theme === 'dark'));
+            const status = document.getElementById('themeSaveStatus');
+            try {
+                localStorage.setItem(THEME_STORAGE_KEY, theme);
+                if (status) status.textContent = `${theme === 'dark' ? 'Dark' : 'Light'} mode is active. Saved on this device.`;
+            } catch (_) {
+                if (status) status.textContent = `${theme === 'dark' ? 'Dark' : 'Light'} mode is active for this session.`;
+            }
+        }
+
+        function initializeTheme() {
+            let savedTheme = 'light';
+            try {
+                const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+                if (storedTheme === 'light' || storedTheme === 'dark') savedTheme = storedTheme;
+            } catch (_) { /* The light theme remains usable when storage is unavailable. */ }
+            setTheme(savedTheme);
+        }
+
+        function openSettings() {
+            const dialog = document.getElementById('settingsDialog');
+            if (dialog && !dialog.open) dialog.showModal();
+        }
+
+        function closeSettings() {
+            const dialog = document.getElementById('settingsDialog');
+            if (dialog?.open) dialog.close();
+        }
 
         const PITCH_PRESETS = {
             'HTD5': { name: 'HTD 5mm', pitchMm: 5.0 },
@@ -1187,10 +1515,10 @@
             svg.innerHTML = `
                 <defs>
                     <marker id="gearArrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#b8244e"/>
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#7e0c2b"/>
                     </marker>
                     <marker id="gearDimArrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                        <path d="M 10 0 L 0 5 L 10 10 z" fill="#a1a1aa"/>
+                        <path d="M 10 0 L 0 5 L 10 10 z" fill="var(--gear-dimension, #a1a1aa)"/>
                     </marker>
                 </defs>
                 <g aria-hidden="true">
@@ -1766,6 +2094,7 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
             initializeCopyControls();
             updateSegmentedControl('pitchSegments', 0);
             updateSegmentedControl('unitSegments', 1);
@@ -1801,7 +2130,7 @@
             button.className = 'copy-control' + (compact ? ' copy-control-compact' : '');
             button.setAttribute('aria-label', 'Copy value');
             button.title = 'Copy value';
-            button.innerHTML = '<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3.5" width="11" height="14" rx="1.8"></rect><rect x="9" y="8" width="11" height="14" rx="1.8" fill="#000"></rect></svg>';
+            button.innerHTML = '<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3.5" width="11" height="14" rx="1.8"></rect><rect x="9" y="8" width="11" height="14" rx="1.8" fill="var(--surface-main)"></rect></svg>';
             button.addEventListener('click', async () => {
                 const value = String(valueProvider()).trim();
                 if (!value) return;
@@ -1823,7 +2152,7 @@
                     clearTimeout(button.copyResetTimer);
                     button.copyResetTimer = setTimeout(() => {
                         button.classList.remove('is-copied'); button.setAttribute('aria-label', 'Copy value'); button.title = 'Copy value';
-                        button.innerHTML = '<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3.5" width="11" height="14" rx="1.8"></rect><rect x="9" y="8" width="11" height="14" rx="1.8" fill="#000"></rect></svg>';
+                        button.innerHTML = '<svg class="copy-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="3.5" width="11" height="14" rx="1.8"></rect><rect x="9" y="8" width="11" height="14" rx="1.8" fill="var(--surface-main)"></rect></svg>';
                     }, 1400);
                 } catch (_) {
                     button.setAttribute('aria-label', 'Copy failed'); button.title = 'Copy failed';
@@ -2129,14 +2458,14 @@
                 const y2Bot = geometry.cy + geometry.r2 * Math.cos(angle);
                 svg.innerHTML = `
                     <g>
-                        <line x1="${geometry.cx1}" y1="${geometry.cy}" x2="${geometry.cx2}" y2="${geometry.cy}" stroke="#27272a" stroke-width="1.5" stroke-dasharray="3"/>
+                        <line x1="${geometry.cx1}" y1="${geometry.cy}" x2="${geometry.cx2}" y2="${geometry.cy}" stroke="var(--gear-centerline, #27272a)" stroke-width="1.5" stroke-dasharray="3"/>
                         <path d="M ${x1Top} ${y1Top} L ${x2Top} ${y2Top} A ${geometry.r2} ${geometry.r2} 0 0 1 ${x2Bot} ${y2Bot} L ${x1Bot} ${y1Bot} A ${geometry.r1} ${geometry.r1} 0 0 1 ${x1Top} ${y1Top}" fill="rgba(126, 12, 43, 0.1)" stroke="#7e0c2b" stroke-width="2" />
-                        <circle cx="${geometry.cx1}" cy="${geometry.cy}" r="${geometry.r1}" fill="#000000" stroke="#7e0c2b" stroke-width="2"/>
+                        <circle cx="${geometry.cx1}" cy="${geometry.cy}" r="${geometry.r1}" fill="var(--gear-tooth-fill, #000000)" stroke="#7e0c2b" stroke-width="2"/>
                         <circle cx="${geometry.cx1}" cy="${geometry.cy}" r="3" fill="#7e0c2b"/>
-                        <text x="${geometry.cx1}" y="${geometry.cy - geometry.r1 - 5}" text-anchor="middle" fill="#a1a1aa" font-size="9" font-weight="bold">${N1}T</text>
-                        <circle cx="${geometry.cx2}" cy="${geometry.cy}" r="${geometry.r2}" fill="#000000" stroke="#7e0c2b" stroke-width="2"/>
+                        <text x="${geometry.cx1}" y="${geometry.cy - geometry.r1 - 5}" text-anchor="middle" fill="var(--gear-dimension, #a1a1aa)" font-size="9" font-weight="bold">${N1}T</text>
+                        <circle cx="${geometry.cx2}" cy="${geometry.cy}" r="${geometry.r2}" fill="var(--gear-tooth-fill, #000000)" stroke="#7e0c2b" stroke-width="2"/>
                         <circle cx="${geometry.cx2}" cy="${geometry.cy}" r="3" fill="#7e0c2b"/>
-                        <text x="${geometry.cx2}" y="${geometry.cy - geometry.r2 - 5}" text-anchor="middle" fill="#a1a1aa" font-size="9" font-weight="bold">${N2}T</text>
+                        <text x="${geometry.cx2}" y="${geometry.cy - geometry.r2 - 5}" text-anchor="middle" fill="var(--gear-dimension, #a1a1aa)" font-size="9" font-weight="bold">${N2}T</text>
                     </g>`;
             };
 

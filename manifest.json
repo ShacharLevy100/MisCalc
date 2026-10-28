@@ -1,14 +1,14 @@
 
 {
   "id": "./",
-  "name": "MisCalc",
+  "name": "MisCalc Redesign",
   "short_name": "MisCalc",
   "description": "Spacer, Timing Belt, and Gear Train Calculator",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#f4eff0",
+  "theme_color": "#7e0c2b",
   "orientation": "portrait",
   "icons": [
     {

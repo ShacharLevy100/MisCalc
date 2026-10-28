@@ -1,5 +1,6 @@
 
-const CACHE_NAME = "miscalc-cache-v5";
+const CACHE_PREFIX = "miscalc-redesign-cache-";
+const CACHE_NAME = `${CACHE_PREFIX}v1`;
 
 const APP_SHELL = [
   "./",
@@ -23,7 +24,7 @@ self.addEventListener("activate", event => {
     caches.keys().then(keys =>
       Promise.all(
         keys
-          .filter(key => key !== CACHE_NAME)
+          .filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
           .map(key => caches.delete(key))
       )
     )
