@@ -279,26 +279,26 @@
             transition: background-color .2s ease, color .2s ease;
         }
         body.app-page[data-theme="dark"] {
-            --page-bg: #141113;
-            --surface-main: #1d191b;
-            --surface-raised: #272124;
-            --surface-inset: #181517;
-            --surface-control: #171416;
-            --line: #3b3236;
-            --line-soft: #30292c;
-            --text-strong: #faf7f8;
-            --text-main: #e9e2e5;
-            --text-muted: #b2a7ac;
-            --text-subtle: #887d82;
-            --gear-tooth-fill: #171416;
-            --gear-hub-fill: #141113;
-            --gear-spoke: #30292c;
-            --gear-pitch: #6b6065;
-            --gear-dimension: #a89da2;
-            --gear-centerline: #51474b;
-            --gear-label: #f0e9ec;
-            --gear-label-bg: #1b1719;
-            --gear-label-border: #51474b;
+            --page-bg: #000;
+            --surface-main: #171717;
+            --surface-raised: #171717;
+            --surface-inset: #09090b;
+            --surface-control: #000;
+            --line: #27272a;
+            --line-soft: #27272a;
+            --text-strong: #f3f4f6;
+            --text-main: #e4e4e7;
+            --text-muted: #a1a1aa;
+            --text-subtle: #71717a;
+            --gear-tooth-fill: #030303;
+            --gear-hub-fill: #000;
+            --gear-spoke: #27272a;
+            --gear-pitch: #52525b;
+            --gear-dimension: #a1a1aa;
+            --gear-centerline: #3f3f46;
+            --gear-label: #e4e4e7;
+            --gear-label-bg: #09090b;
+            --gear-label-border: #3f3f46;
         }
         body.app-page > #appShell {
             display: flex;
@@ -829,7 +829,7 @@
         let currentPitchMm = 5.0;
         let pitchPresetKey = 'HTD5';
         const RECENT_HISTORY_KEY = 'miscalc-redesign.recent-calculations.v1';
-        const THEME_STORAGE_KEY = 'miscalc-redesign.theme.v1';
+        const THEME_STORAGE_KEY = 'miscalc-redesign.theme.v2';
         const RECENT_HISTORY_LIMIT = 10;
         let recentCalculations = [];
         let historySaveTimer = null;
@@ -844,7 +844,7 @@
             if (theme !== 'light' && theme !== 'dark') return;
             document.body.dataset.theme = theme;
             document.documentElement.style.colorScheme = theme;
-            document.documentElement.style.backgroundColor = theme === 'dark' ? '#141113' : '#f4eff0';
+            document.documentElement.style.backgroundColor = theme === 'dark' ? '#000' : '#f4eff0';
             document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#7e0c2b');
             document.getElementById('themeLightButton')?.setAttribute('aria-pressed', String(theme === 'light'));
             document.getElementById('themeDarkButton')?.setAttribute('aria-pressed', String(theme === 'dark'));
@@ -858,7 +858,7 @@
         }
 
         function initializeTheme() {
-            let savedTheme = 'light';
+            let savedTheme = 'dark';
             try {
                 const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
                 if (storedTheme === 'light' || storedTheme === 'dark') savedTheme = storedTheme;
